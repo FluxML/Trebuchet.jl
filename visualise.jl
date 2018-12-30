@@ -16,7 +16,7 @@ function init(t::Trebuchet)
             "lengths"=> $(t.l),
             "masses"=> $(t.m),
             "angles"=> $(t.a),
-            "scale"=> 10,
+            "scale"=> 40,
             "padding"=> 22
         )
         window.config = config;
@@ -25,7 +25,7 @@ function init(t::Trebuchet)
     end)
 
     onjs(o, @js (v) -> begin
-        console.log("v.angles", v["angles"])
+        # console.log("v.angles", v["angles"])
         changeTo(v, window.config)
         draw(window.config);
     end)

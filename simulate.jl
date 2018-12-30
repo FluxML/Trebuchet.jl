@@ -1,23 +1,57 @@
-
+# Equations:
 # http://www.virtualtrebuchet.com/#documentation_EquationsOfMotion
 
 function simulate(t::Trebuchet, ::Val{:Ground})
     a = t.a
-    u0 = Float64.([a.aq, a.wq, a.sq, 0, 0, 0])
+    aw = t.aw
+    u0 = Float64.([a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw])
     ti = (0, 1.0)
     prob = ODEProblem(stage1!, u0, ti, t)
-    solve(prob)
+
+    cb = ContinuousCallback((u, _, __) -> u[1] + u[3] < π ? 0 : 1,
+     (i) -> terminate!(i),
+     save_positions = (false,false))
+    solve(prob, RK4(), saveat=1/(t.rate), callback=cb)
 end
 
-# function simulate(t::Trebuchet, ::Val{:Hang})
-#     a, aw = t.a, t.aw
-#     u0 = Float64.([a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw])
-#     ti = (0, 1.0)
-#     prob = ODEProblem(stage2!, u0, ti, t)
-#     solve(prob)
-# end
-#
-#
+list = []
+
+Base.:+(a::Vec, b::Vec) = Vec(a.x + b.x, a.y + b.y)
+γ(a::Vec) = asin(a.y/ sqrt(a.x^2 + a.y^2))
+
+function projectile_angle(t::Trebuchet, u::Array)
+    l, c = t.l, t.c
+    e, b = l.e, l.b
+    r = c.r
+
+    aq = u[1]
+    sq = u[3]
+    aw = u[4]
+    sw = u[6]
+
+    p = Vec(e*sw*cos(sq + aq), e*sw*sin(sq + aq))
+    q = Vec(b*aw*cos(aq), b*aw*sin(aq))
+
+    γ(p + q)
+end
+
+function simulate(t::Trebuchet, ::Val{:Hang})
+    a, aw = t.a, t.aw
+    r = t.c.r
+    u0 = Float64.([a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw])
+    ti = (0, 1.0)
+    prob = ODEProblem(stage2!, u0, ti, t)
+
+    i = 0
+    cb = ContinuousCallback(
+    (u, time, it) -> projectile_angle(t, u) - r,
+    (i) -> terminate!(i),
+    save_positions = (true,false))
+
+    solve(prob, RK4(), callback=cb)
+end
+
+
 # function simulate(t::Trebuchet, ::Val{:Released})
 #     u0 = [t.p.x, t.p.y, t.v.x, t.v.y]
 #     ti = (0, 1.0)
@@ -32,6 +66,8 @@ function stage1!(du, u, p::Trebuchet, t)
     IA3, IW3 = i.iw, i.ia
     LAcg = (LAl - LAs)/2
     Grav = p.c.Grav
+    SIN = sin
+    COS = cos
 
     Aq = u[1]
     Wq = u[2]
@@ -40,19 +76,19 @@ function stage1!(du, u, p::Trebuchet, t)
     Ww = u[5]
     Sw = u[6]
 
-    M11 = -mP * LAl^2 * (-1 + 2sin(Aq)*cos(Sq)/sin(Aq + Sq)) + IA3 + IW3 + mA * LAcg^2 + mP * LAl^2 * sin(Aq)^2/sin(Aq + Sq)^2 + mW*(LAs^2 + LW^2 + 2*LAs*LW*cos(Wq))
-    M12 = IW3 + LW*mW*(LW + LAs*cos(Wq))
-    M21 = M12
+    M11 = -mP*LAl^2*(-1+2*SIN(Aq)*COS(Sq)/SIN(Aq+Sq)) + IA3 + IW3 + mA*LAcg^2 + mP*LAl^2*SIN(Aq)^2/SIN(Aq+Sq)^2 + mW*(LAs^2+LW^2+2*LAs*LW*COS(Wq))
+    M12 = IW3 + LW*mW*(LW+LAs*COS(Wq))
+    M21 = IW3 + LW*mW*(LW+LAs*COS(Wq))
     M22 = IW3 + mW*LW^2
-    r1 = Grav*LAcg*mA*sin(Aq) + LAl*LS*mP*(sin(Sq)*(Aw+Sw)^2+cos(Sq)*(cos(Aq+Sq)*Sw*(Sw+2*Aw)/sin(Aq+Sq)+(cos(Aq+Sq)/sin(Aq+Sq)+LAl*cos(Aq)/(LS*sin(Aq+Sq)))*Aw^2)) + LAl*mP*sin(Aq)*(LAl*sin(Sq)*Aw^2-LS*(cos(Aq+Sq)*Sw*(Sw+2*Aw)/sin(Aq+Sq)+(cos(Aq+Sq)/sin(Aq+Sq)+LAl*cos(Aq)/(LS*sin(Aq+Sq)))*Aw^2))/sin(Aq+Sq) - Grav*mW*(LAs*sin(Aq)+LW*sin(Aq+Wq)) - LAs*LW*mW*sin(Wq)*(Aw^2-(Aw+Ww)^2)
-    r2 = -LW*mW*(Grav*sin(Aq+Wq)+LAs*sin(Wq)*Aw^2)
+    r1 = Grav*LAcg*mA*SIN(Aq) + LAl*LS*mP*(SIN(Sq)*(Aw+Sw)^2+COS(Sq)*(COS(Aq+Sq)*Sw*(Sw+2*Aw)/SIN(Aq+Sq)+(COS(Aq+Sq)/SIN(Aq+Sq)+LAl*COS(Aq)/(LS*SIN(Aq+Sq)))*Aw^2)) + LAl*mP*SIN(Aq)*(LAl*SIN(Sq)*Aw^2-LS*(COS(Aq+Sq)*Sw*(Sw+2*Aw)/SIN(Aq+Sq)+(COS(Aq+Sq)/SIN(Aq+Sq)+LAl*COS(Aq)/(LS*SIN(Aq+Sq)))*Aw^2))/SIN(Aq+Sq) - Grav*mW*(LAs*SIN(Aq)+LW*SIN(Aq+Wq)) - LAs*LW*mW*SIN(Wq)*(Aw^2-(Aw+Ww)^2)
+    r2 = -LW*mW*(Grav*SIN(Aq+Wq)+LAs*SIN(Wq)*Aw^2)
 
     dAq = Aw
     dWq = Ww
     dSq = Sw
     dAw = (r1*M22-r2*M12)/(M11*M22-M12*M21)
     dWw = -(r1*M21-r2*M11)/(M11*M22-M12*M21)
-    dSw = -cos(Aq+Sq)*Sq'*(Sq'+2*Aq')/sin(Aq+Sq) - (cos(Aq+Sq)/sin(Aq+Sq)+LAl*cos(Aq)/(LS*sin(Aq+Sq)))*Aq'^2 - (LAl*sin(Aq)+LS*sin(Aq+Sq))*Aq''/(LS*sin(Aq+Sq))
+    dSw = -COS(Aq+Sq)*dSq*(dSq+2*dAq)/SIN(Aq+Sq) - (COS(Aq+Sq)/SIN(Aq+Sq)+LAl*COS(Aq)/(LS*SIN(Aq+Sq)))*dAq^2 - (LAl*SIN(Aq)+LS*SIN(Aq+Sq))*dAw/(LS*SIN(Aq+Sq))
 
     du[1] = dAq
     du[2] = dWq

@@ -16,43 +16,30 @@ var draw = (function(config){
 		var theta = Math.asin(a/b);
 		var pi = Math.PI;
 
-		console.log(config.angles)
+		// console.log(config.angles)
 
 		derived.angles.aq = (angles && angles.aq != undefined) ? angles.aq : (pi/2 + theta);
 		derived.angles.sq = (angles && angles.sq != undefined) ? angles.sq : (pi - theta);
 		derived.angles.wq = (angles && angles.wq != undefined) ? angles.wq : (-(pi/2 + theta));
 
-		console.log(derived.angles);
+		// console.log(derived.angles);
 		setInputs(derived);
 
 		var {aq, sq, wq} = derived.angles;
-
-
-		// derived.points.O = new Point(0, 0, color="#da7e29");
-		// derived.points.V = new Point(0, -a);
-		//
-
-		//
-		// derived.points.X = derived.lines.aLine.other().rel_point(-c, aq, "#693d14");
-		// derived.points.Y = derived.lines.aLine.other().rel_point(b, aq, "#693d14");
-
-		//
-		// derived.points.U = derived.lines.bcLine.rel_point(d, wq);
-		// derived.points.Z = derived.lines.bcLine.other().rel_point(e, sq);
 		var {sin, cos} = Math;
 
 		derived.points = {}
 		derived.points.O = new Point(0, 0, color="#da7e29");
 		derived.points.V = new Point(0, a);
-
 		derived.points.X = new Point(c*sin(aq), c*cos(aq));
 		derived.points.Y = new Point(-b*sin(aq), -b*cos(aq));
-
-
 		derived.points.Z = new Point(-b*sin(aq) - e*sin(aq+sq), -b*cos(aq) - e*cos(aq+sq));
 		derived.points.U = new Point(c*sin(aq) + d*sin(aq+wq), c*cos(aq) + d*cos(aq+wq));
 
+
 		var {X, Y, U, Z, O, V} = derived.points;
+
+		console.log([Z.x, Z.y])
 
 		derived.lines = {}
 		derived.lines.aLine = new Line(O, V);
@@ -90,7 +77,7 @@ var draw = (function(config){
 			document.body.style.background = '#fff';
 		}
 
-		(new Point(derived.lengths.b + config.padding, config.canvas.height - config.padding - 2*derived.lengths.a)).translate(ctx, () => {
+		(new Point(derived.lengths.e + derived.lengths.b + 2*config.padding, config.canvas.height - config.padding - 2*derived.lengths.a)).translate(ctx, () => {
 			var drawall = (obj, ctx) => Object.keys(obj).forEach(k => obj[k].draw(ctx));
 			drawall(derived.lines, ctx);
 			drawall(derived.rects, ctx);

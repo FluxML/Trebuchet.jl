@@ -16,15 +16,17 @@ function setInputs({ angles }){
 
 var init = (e) => {
 	console.log(e)
-	__(".slider").addEventListener("click", function(e){
-		marioMode = !marioMode;
-		draw(config);
-		if(marioMode == true){
-			e.target.setAttribute("val","on");
-		}else{
-			e.target.setAttribute("val","off");
-		}
-	});
+	var s = __(".slider");
+	if(s)
+		s.addEventListener("click", function(e){
+			marioMode = !marioMode;
+			draw(config);
+			if(marioMode == true){
+				e.target.setAttribute("val","on");
+			}else{
+				e.target.setAttribute("val","off");
+			}
+		});
 	(["aq", "sq", "wq"].forEach(name =>{
 
 		var ele = __("#" + name);
