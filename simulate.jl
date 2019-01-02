@@ -1,63 +1,75 @@
 # Equations:
 # http://www.virtualtrebuchet.com/#documentation_EquationsOfMotion
 
-function simulate(t::Trebuchet, ::Val{:Ground})
+function simulate(t)
+   time = 0.0
+   t.stage = Val{:Ground}()
+   while !isa(t.stage, Val{:End})
+      s = simulate_(t, time)
+      time += s.t[end]
+      derive!(t, s)
+      if (isa(t.stage, Val{:Released}))
+         t.sol.ReleaseVelocity = t.p
+         t.sol.ReleasePositon = t.v
+      end
+   end
+   return t.sol
+end
+
+simulate_(t::Trebuchet, time) = simulate(t, time, t.stage)
+
+function simulate_(t::Trebuchet, time, ::Val{:Ground})
     a = t.a
     aw = t.aw
-    u0 = Float64.([a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw])
-    ti = (0, 1.0)
+    u0 = [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
+    ti = (time, time + 1.0)
     prob = ODEProblem(stage1!, u0, ti, t)
 
-    cb = ContinuousCallback((u, _, __) -> u[1] + u[3] < π ? 0 : 1,
-     (i) -> terminate!(i),
-     save_positions = (false,false))
-    solve(prob, RK4(), saveat=1/(t.rate), callback=cb)
+    cb = ContinuousCallback(
+        (u, time, it) -> begin
+            m = t.m.p
+            mg = m*t.c.Grav
+            time == it.tprev && return mg
+            acc = (sling_velocity(t, u) - sling_velocity(t, it.uprev))/(time - it.tprev)
+            θ = u[1] + u[3] - π
+            T = -acc.x*m/sin(θ)
+            mg - T*cos(θ)
+        end,
+        (i) -> terminate!(i))
+
+    solve(prob, Tsit5(), saveat=1/(t.rate), callback=cb)
 end
 
-list = []
-
-Base.:+(a::Vec, b::Vec) = Vec(a.x + b.x, a.y + b.y)
-γ(a::Vec) = asin(a.y/ sqrt(a.x^2 + a.y^2))
-
-function projectile_angle(t::Trebuchet, u::Array)
-    l, c = t.l, t.c
-    e, b = l.e, l.b
-    r = c.r
-
-    aq = u[1]
-    sq = u[3]
-    aw = u[4]
-    sw = u[6]
-
-    p = Vec(e*sw*cos(sq + aq), e*sw*sin(sq + aq))
-    q = Vec(b*aw*cos(aq), b*aw*sin(aq))
-
-    γ(p + q)
-end
-
-function simulate(t::Trebuchet, ::Val{:Hang})
+function simulate_(t::Trebuchet, time, ::Val{:Hang})
     a, aw = t.a, t.aw
     r = t.c.r
-    u0 = Float64.([a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw])
-    ti = (0, 1.0)
+    @show a, aw
+    u0 = [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
+    ti = (time, time + 1.0)
     prob = ODEProblem(stage2!, u0, ti, t)
 
-    i = 0
     cb = ContinuousCallback(
-    (u, time, it) -> projectile_angle(t, u) - r,
-    (i) -> terminate!(i),
-    save_positions = (true,false))
+        (u, time, it) -> sin(projectile_angle(t, u) - r),
+        (i) -> terminate!(i))
 
-    solve(prob, RK4(), callback=cb)
+    s = solve(prob, Tsit5(), callback=cb, saveat=1/(t.rate))
+    @show s
+    s
 end
 
 
-# function simulate(t::Trebuchet, ::Val{:Released})
-#     u0 = [t.p.x, t.p.y, t.v.x, t.v.y]
-#     ti = (0, 1.0)
-#     prob = ODEProblem(stage3!, u0, ti, t)
-#     solve(prob)
-# end
+function simulate_(t::Trebuchet, time, ::Val{:Released})
+    a = t.l.a
+    u0 = [t.p.x, t.p.y, t.v.x, t.v.y]
+    ti = (time, 5.0 + time)
+    prob = ODEProblem(stage3!, u0, ti, t)
+
+    cb = ContinuousCallback(
+        (u, time, it) -> u[2] + a,
+        (it) -> terminate!(it))
+
+    solve(prob, Tsit5(), saveat=1/(t.rate), callback=cb)
+end
 
 function stage1!(du, u, p::Trebuchet, t)
     l, a, m, i = p.l, p.a, p.m, p.i
@@ -106,6 +118,8 @@ function stage2!(du, u, p::Trebuchet, t)
 
     LAcg = (LAl - LAs)/2
     Grav = p.c.Grav
+    COS = cos
+    SIN = sin
 
     Aq = u[1]
     Wq = u[2]
@@ -114,24 +128,25 @@ function stage2!(du, u, p::Trebuchet, t)
     Ww = u[5]
     Sw = u[6]
 
-    M11 = IA3 + IW3 + mA*LAcg^2 + mP*(LAl^2+LS^2+2*LAl*LS*cos(Sq)) + mW*(LAs^2+LW^2+2*LAs*LW*cos(Wq))
-    M12 = IW3 + LW*mW*(LW+LAs*cos(Wq))
-    M13 = LS*mP*(LS+LAl*cos(Sq))
-    M21 = IW3 + LW*mW*(LW+LAs*cos(Wq))
+
+    M11 = IA3 + IW3 + mA*LAcg^2 + mP*(LAl^2+LS^2+2*LAl*LS*COS(Sq)) + mW*(LAs^2+LW^2+2*LAs*LW*COS(Wq))
+    M12 = IW3 + LW*mW*(LW+LAs*COS(Wq))
+    M13 = LS*mP*(LS+LAl*COS(Sq))
+    M21 = IW3 + LW*mW*(LW+LAs*COS(Wq))
     M22 = IW3 + mW*LW^2
-    M31 = LS*mP*(LS+LAl*cos(Sq))
+    M31 = LS*mP*(LS+LAl*COS(Sq))
     M33 = mP*LS^2
 
-    r1 = Grav*LAcg*mA*sin(Aq) + Grav*mP*(LAl*sin(Aq)+LS*sin(Aq+Sq)) - Grav*mW*(LAs*sin(Aq)+LW*sin(Aq+Wq)) - LAl*LS*mP*sin(Sq)*(Aw^2-(Aw+Sw)^2) - LAs*LW*mW*sin(Wq)*(Aw^2-(Aw+Ww)^2)
-    r2 = -LW*mW*(Grav*sin(Aq+Wq)+LAs*sin(Wq)*Aw^2)
-    r3 = LS*mP*(Grav*sin(Aq+Sq)-LAl*sin(Sq)*Aw^2)
+    r1 = Grav * LAcg * mA * SIN(Aq) + Grav * mP * ( LAl * SIN(Aq) + LS * SIN(Aq+Sq) ) - Grav * mW * ( LAs * SIN(Aq) + LW* SIN(Aq+Wq)) - LAl * LS * mP * SIN(Sq) * ( Aw^2 - ( Aw + Sw )^2 ) - LAs * LW * mW * SIN(Wq) * ( Aw^2 - (Aw+Ww)^2)
+    r2 = -LW * mW * (Grav * SIN(Aq+Wq) + LAs * SIN(Wq) * Aw^2)
+    r3 = LS * mP * ( Grav * SIN(Aq + Sq) - LAl * SIN(Sq) * Aw^2 )
 
     dAq = Aw
     dWq = Ww
     dSq = Sw
-    dAw = -(r1*M22*M33-r2*M12*M33-r3*M13*M22)/(M13*M22*M31-M33*(M11*M22-M12*M21))
-    dWw = (r1*M21*M33-r2*(M11*M33-M13*M31)-r3*M13*M21)/(M13*M22*M31-M33*(M11*M22-M12*M21))
-    dSw = (r1*M22*M31-r2*M12*M31-r3*(M11*M22-M12*M21))/(M13*M22*M31-M33*(M11*M22-M12*M21))
+    dAw = -( r1 * M22 * M33 - r2 * M12 * M33 - r3 * M13 * M22 ) / ( M13 * M22 * M31 - M33 * ( M11 * M22 - M12 * M21))
+    dWw = ( r1 * M21 * M33 - r2 * (M11 * M33 - M13 * M31 ) - r3 * M13 * M21) / ( M13 * M22 * M31 - M33 * ( M11 * M22 - M12 * M21))
+    dSw = ( r1 * M22 * M31 - r2 * M12 * M31 - r3 * (M11 * M22 - M12 * M21)) / (M13 * M22 * M31 - M33 * ( M11 * M22 - M12 * M21))
 
     du[1] = dAq
     du[2] = dWq
@@ -145,7 +160,7 @@ function stage3!(du, u, pr::Trebuchet, t)
     c = pr.c
     Grav = c.Grav
     ρ = c.ρ
-    ws = c.w
+    WS = c.w
     Aeff = π*(pr.l.z)^2
     mP = pr.m.p
     Cd = c.Cd
@@ -157,4 +172,9 @@ function stage3!(du, u, pr::Trebuchet, t)
     dPy = Pvy
     dPvx = -(ρ*Cd*Aeff*(Pvx-WS)*sqrt(Pvy^2+(WS-Pvx)^2))/(2*mP)
     dPvy = -Grav - (ρ*Cd*Aeff*Pvy*sqrt(Pvy^2+(WS-Pvx)^2))/(2*mP)
+
+    du[1] = dPx
+    du[2] = dPy
+    du[3] = dPvx
+    du[4] = dPvy
 end

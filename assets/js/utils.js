@@ -5,47 +5,9 @@ var c = 180/Math.PI;
 var deg = (e) => e*c;
 var rad = (e) => e/c;
 
-function setInputs({ angles }){
-	Object.keys(angles).forEach(name =>{
-		var ele = __("#" + name);
-		if(ele){
-			ele.value = deg(angles[name]);
-		}
-	})
-}
-
-var init = (e) => {
-	console.log(e)
-	var s = __(".slider");
-	if(s)
-		s.addEventListener("click", function(e){
-			marioMode = !marioMode;
-			draw(config);
-			if(marioMode == true){
-				e.target.setAttribute("val","on");
-			}else{
-				e.target.setAttribute("val","off");
-			}
-		});
-	(["aq", "sq", "wq"].forEach(name =>{
-
-		var ele = __("#" + name);
-		if(ele){
-			ele.addEventListener("change", function(e){
-				console.log("eeeee")
-				if(!config.angles){
-					config.angles = {};
-				}
-				config.angles[name] = rad(parseFloat(ele.value));
-				draw(config);
-			})
-		}
-	}));
-}
-
 (function(obj){
 
-	Object.assign(obj, {Point, Line, Rect, Circle, Cloud, Floor});
+	Object.assign(obj, {Point, Line, Rect, Circle, Cloud, Floor, Vec, drawarc, whereami});
 
 	function Point(x, y, color="#000"){
 		this.x = x;
@@ -91,12 +53,30 @@ var init = (e) => {
 	}
 	Line.prototype.other = function(){return new Line(this.b, this.a, this.color)}
 	Line.prototype.angle = function(){
-		return Math.atan((this.b.y - this.a.y)/(this.b.x - this.a.x))
+		if( this.b.x - this.a.x >= 0 )
+			return Math.atan((this.b.y - this.a.y)/(this.b.x - this.a.x))
+		else if (this.b.y - this.a.y >= 0){
+			return Math.PI + Math.atan((this.b.y - this.a.y)/(this.b.x - this.a.x))
+		}else {
+			return Math.atan((this.b.y - this.a.y)/(this.b.x - this.a.x)) - Math.PI
+		}
 	}
 
 	Line.prototype.rel_point = function(r, angle, color="#000"){
 		var t = this.angle() + angle;
-		return (new Point(r*Math.cos(t), -r*Math.sin(t), color)).displace(this.a);
+		if(t > Math.PI){
+			while(t > Math.PI){
+				t -= 2*Math.PI
+			}
+		}
+
+		if(t <= Math.PI){
+			while(t <= Math.PI){
+				t += 2*Math.PI
+			}
+		}
+
+		return (new Point(r*Math.cos(t), r*Math.sin(t), color)).displace(this.a);
 	}
 
 	Line.prototype.draw = function(ctx){
@@ -122,7 +102,12 @@ var init = (e) => {
 		return new Rect(a, angle, height, width, color);
 	};
 
+	function Vec(a, b, r){
+		this.a = a;
+		this.b = (new Line(a, b)).rel_point(r, 0);
+	}
 
+	Object.assign(Vec.prototype, Line.prototype);
 
 	function Rect(pivot, angle, height, width,color){
 		this.pivot = pivot;
@@ -252,4 +237,50 @@ var init = (e) => {
 		setTimeout(() => eeff(d, limit, start, i+1),100)
 	}
 
+	function drawarc(ctx, point, start, angle){
+		console.log(start, angle)
+		ctx.fillStyle = "#f00"
+		ctx.beginPath();
+		ctx.arc(point.x, point.y, 40, start, start + angle);
+		ctx.fill();
+	}
+
 })(window);
+
+function setInputs({ angles }){
+	Object.keys(angles).forEach(name =>{
+		var ele = __("#" + name);
+		if(ele){
+			ele.value = deg(angles[name]);
+		}
+	})
+}
+
+var init = (e) => {
+	console.log(e)
+	var s = __(".slider");
+	if(s)
+		s.addEventListener("click", function(e){
+			marioMode = !marioMode;
+			draw(config);
+			if(marioMode == true){
+				e.target.setAttribute("val","on");
+			}else{
+				e.target.setAttribute("val","off");
+			}
+		});
+	(["aq", "sq", "wq"].forEach(name =>{
+
+		var ele = __("#" + name);
+		if(ele){
+			ele.addEventListener("change", function(e){
+				console.log("eeeee")
+				if(!config.angles){
+					config.angles = {};
+				}
+				config.angles[name] = rad(parseFloat(ele.value));
+				draw(config);
+			})
+		}
+	}));
+}

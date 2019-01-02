@@ -16,5 +16,5 @@ main.innerHTML = template;
 document.body.appendChild(main);
 
 function changeTo(v, config){
-  Object.assign(config.angles, v.angles);
+	Object.assign(config, v);
 }
