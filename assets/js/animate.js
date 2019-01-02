@@ -1,4 +1,5 @@
 var $$ = (e) => document.querySelector(e);
+var scale = 10;
 
 function setVal(ele, val){
 	if(!ele)return
@@ -6,7 +7,6 @@ function setVal(ele, val){
 }
 
 function plot(ctx, sol, i, {a}){
-	var scale = 10;
 	var p = (e, color="#000") => new Point(e[0]*scale, -e[1]*scale, color)
 	var X = p(sol.WeightArm[i]);
 	var Y = p(sol.ArmSling[i]);
@@ -21,13 +21,13 @@ function plot(ctx, sol, i, {a}){
 	var dLine = new Line(X, U);
 	var eLine = new Line(Y, Z);
 
-	var aRect = aLine.toRect("#925c1d", scale*0.17);
-	var bcRect = bcLine.toRect("#693d14", scale*0.13);
+	var aRect = aLine.toRect("#925c1d", scale*0.3);
+	var bcRect = bcLine.toRect("#693d14", scale*0.19);
 
 	var PCircle = new Circle(P, scale/5);
 	var UCircle = new Circle(U, scale/3);
 
-	[bcLine, dLine, eLine, PCircle, UCircle, aLine, aRect, bcRect].forEach(e => e.draw(ctx));
+	[bcLine, aRect, bcRect, dLine, eLine, PCircle, UCircle].forEach(e => e.draw(ctx));
 
 	var round2 = (x) => Math.round(x*100)/100
 	setVal($$("#time"), round2(sol.Time[i]));
@@ -37,10 +37,12 @@ function plot(ctx, sol, i, {a}){
 
 
 function animate(ele_name, lengths, sol){
-	var i = 0 | 0;
+
+
+	var i = 0;
 	var canvas = document.querySelector("#" + ele_name);
 	var ctx = canvas.getContext("2d");
-	var len = sol.WeightCG.length | 0;
+	var len = sol.WeightCG.length;
 
 	var origin = new Point(100, canvas.height - 20);
 
@@ -56,8 +58,6 @@ function animate(ele_name, lengths, sol){
 		setTimeout(() => next(i + 1), time);
 	}
 	next(0);
-
-
 	console.log(sol.Projectile[len - 1])
 }
 
@@ -66,7 +66,7 @@ function animate(ele_name, lengths, sol){
 function createCanvas(ele_name){
 	var ele = document.createElement("canvas")
 	ele.setAttribute("id", ele_name);
-	ele.width = 1000;
+	ele.width = window.innerWidth;
 	ele.height = 500;
 	document.body.appendChild(ele);
 }

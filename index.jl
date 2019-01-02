@@ -87,10 +87,10 @@ mutable struct Trebuchet
     end
 end
 
-function Trebuchet()
+function Trebuchet(;wind_speed::Float64=1.0, release_angle::Float64=deg2rad(45))
     l = Lengths(Val{:ft}(), 5.0, 6.792, 1.75, 2.0, 6.833, 2.727, 0.1245)
     m = Masses(Val{:lb}(), 98.09, 0.328, 10.65)
-    c = Constants(-1.0, 1.0, 1.0, 9.80665, deg2rad(45))
+    c = Constants(wind_speed, 1.0, 1.0, 9.80665, release_angle)
     t = Trebuchet(l, m, c, 60)
     t.i = Inertias(lb2kg(1.0) |> ft2m |> ft2m , t.i.ia)
     return t
