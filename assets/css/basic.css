@@ -1,0 +1,19 @@
+body{
+  background: #fafafa;
+  font-family: arial, verdana;
+}
+
+.field{
+  display: flex;
+  justify-content: center;
+}
+.field > div{
+  width: 100px;
+  text-align: left;
+}
+
+label{
+  width: 100px;
+  text-align: right;
+  padding: 0 10px;
+}

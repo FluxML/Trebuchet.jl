@@ -16,7 +16,7 @@ function derive(t::Trebuchet, sol::AbstractODESolution, s = Solution())
     stage = t.stage
     p = tuples(sol)
     for (x, y) in p
-        derive!(t, x, y, stage, s)
+        derive(t, x, y, stage, s)
     end
     transition(t, p[end][1], stage)
     return s
@@ -49,10 +49,6 @@ function derive(t::Trebuchet, a::Array, time, ::Union{Val{:Ground},Val{:Hang}}, 
     LAcg = (LAl - LAs)/2
     SIN = sin
     COS = cos
-
-    SlingEnd
-    ArmCG
-    Time
     push!(s.WeightCG, [LAs*SIN(Aq) + LW*SIN(Aq+Wq), -LAs*COS(Aq) - LW*COS(Aq+Wq)])
     push!(s.WeightArm, [LAs*SIN(Aq), -LAs*COS(Aq)])
     push!(s.ArmSling, [-LAl*SIN(Aq), LAl*COS(Aq)])
@@ -117,3 +113,6 @@ sling_velocity(t::Trebuchet, b, e, aq, sq, aw, sw) =
 
 projectile_angle(t::Trebuchet, u::Array) =
   ∠(sling_velocity(t, u))
+
+endTime(t::Trebuchet) = t.sol.Time[end]
+endDist(t::Trebuchet) = t.sol.Projectile[end][1]

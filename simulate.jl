@@ -16,7 +16,7 @@ function simulate(t)
    return t.sol
 end
 
-simulate_(t::Trebuchet, time) = simulate(t, time, t.stage)
+simulate_(t::Trebuchet, time) = simulate_(t, time, t.stage)
 
 function simulate_(t::Trebuchet, time, ::Val{:Ground})
     a = t.a
@@ -43,7 +43,6 @@ end
 function simulate_(t::Trebuchet, time, ::Val{:Hang})
     a, aw = t.a, t.aw
     r = t.c.r
-    @show a, aw
     u0 = [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
     ti = (time, time + 1.0)
     prob = ODEProblem(stage2!, u0, ti, t)
@@ -52,9 +51,7 @@ function simulate_(t::Trebuchet, time, ::Val{:Hang})
         (u, time, it) -> sin(projectile_angle(t, u) - r),
         (i) -> terminate!(i))
 
-    s = solve(prob, Tsit5(), callback=cb, saveat=1/(t.rate))
-    @show s
-    s
+    solve(prob, Tsit5(), callback=cb, saveat=1/(t.rate))
 end
 
 
