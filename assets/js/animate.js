@@ -53,7 +53,6 @@ function plot(ctx, sol, i, {a}){
 	setVal($$("#time"), round2(sol.Time[i]));
 	setVal($$("#distance"), round2(sol.Projectile[i][0]));
 	setVal($$("#height"), round2(sol.Projectile[i][1] + a));
-	console.log("plot")
 	trail(ctx, sol, i)
 
 }
@@ -73,7 +72,6 @@ function animate(ele_name, lengths, sol){
 	// 	() => new Array(len).fill(0).map((_, i) => plot(ctx, sol, i, lengths)))
 
 	var comp = (i, j) => {
-		console.log(max_i, sol, i, j)
 		if(sol.Projectile[i][j] > sol.Projectile[max_i[j]][j]){
 			max_i[j] = i
 		}
@@ -91,7 +89,6 @@ function animate(ele_name, lengths, sol){
 		setTimeout(() => next(i + 1), time);
 	}
 	next(0);
-	console.log(sol.Projectile[len - 1])
 }
 
 
