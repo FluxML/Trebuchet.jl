@@ -50,9 +50,9 @@ function plot(ctx, sol, i, {a}){
 	[bcLine, aRect, bcRect, dLine, eLine, PCircle, UCircle].forEach(e => e.draw(ctx));
 
 
-	setVal($$("#time"), round2(sol.Time[i]));
-	setVal($$("#distance"), round2(sol.Projectile[i][0]));
-	setVal($$("#height"), round2(sol.Projectile[i][1] + a));
+	setVal($$("#time"), round2(sol.Time[i]) + "s");
+	setVal($$("#distance"), round2(sol.Projectile[i][0]) + "m");
+	setVal($$("#height"), round2(sol.Projectile[i][1] + a) + "m");
 	trail(ctx, sol, i)
 
 }

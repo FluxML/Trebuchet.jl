@@ -10,4 +10,4 @@ julia
 include("example.jl")
 ```
 
-Credits: http://www.virtualtrebuchet.com/#simulator
+Credits: http://www.virtualtrebuchet.com/#documentation_EquationsOfMotion

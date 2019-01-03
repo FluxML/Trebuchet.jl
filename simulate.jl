@@ -3,7 +3,6 @@
 
 function simulate(t)
    time = 0.0
-   t.stage = Val{:Ground}()
    while !isa(t.stage, Val{:End})
       s = simulate_(t, time)
       time += s.t[end]
