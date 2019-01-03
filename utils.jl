@@ -1,4 +1,4 @@
-using DiffEqBase.AbstractODESolution
+using DiffEqBase: AbstractODESolution
 
 ft2m(x) = x*0.3048
 lb2kg(x) = x*0.45359237

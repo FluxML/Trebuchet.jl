@@ -7,7 +7,7 @@ var rad = (e) => e/c;
 
 (function(obj){
 
-	Object.assign(obj, {Point, Line, Rect, Circle, Cloud, Floor, Vec, drawarc, whereami});
+	Object.assign(obj, {Point, Line, Rect, Circle, Cloud, Floor, Vec, drawarc, whereami, Measure});
 
 	function Point(x, y, color="#000"){
 		this.x = x;
@@ -153,6 +153,39 @@ var rad = (e) => e/c;
 			ctx.strokeStyle="#000";
 			ctx.stroke()
 		}
+	}
+
+	function Measure(a, b, p, q, val, color="#000", textColor="#000"){
+		this.a = a;
+		this.b = b;
+		this.p = p;
+		this.q = q;
+		this.val = val;
+		this.color = color;
+		this.textColor = textColor;
+	}
+
+	Measure.prototype.draw = function(ctx){
+		var c = new Point((this.a.x + this.b.x)/2, (this.a.y + this.b.y)/2);
+		(new Line(this.a, this.b).toRect(this.color, 2)).draw(ctx);
+		var makeLines = (a, p, q) => {
+			var ap = new Line(a, p.clone().displace(a));
+			var aq = new Line(a, q.clone().displace(a));
+			return [ap.toRect(this.color, 2), aq.toRect(this.color, 2)];
+		}
+		makeLines(this.a, this.p, this.q).forEach(e => e.draw(ctx));
+		makeLines(this.b, this.p, this.q).forEach(e => e.draw(ctx))
+		// ctx.textAlign = "center";
+		ctx.fillStyle = this.textColor;
+		var w = ctx.measureText(this.val).width;
+		var h = 11;
+		var tx = c.x - w/2;
+		var ty = c.y + h/2;
+		ctx.font = h + "px arial";
+		var padding = 10;
+		ctx.clearRect(tx - padding, ty - h - padding, w + 2*padding, h + 2*padding);
+		ctx.fillText(this.val, tx, ty);
+
 	}
 
 	function Cloud(p){

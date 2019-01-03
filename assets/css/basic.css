@@ -1,19 +1,31 @@
 body{
   background: #fafafa;
   font-family: arial, verdana;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+}
+
+canvas{
+  display: block;
+  margin: 0 auto;
 }
 
 .field{
   display: flex;
   justify-content: center;
+  padding: 3px 0;
 }
+
 .field > div{
   width: 100px;
   text-align: left;
 }
 
 label{
-  width: 100px;
+  width: 200px;
   text-align: right;
   padding: 0 10px;
 }

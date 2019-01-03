@@ -99,3 +99,10 @@ end
 include("utils.jl")
 include("simulate.jl")
 include("visualise.jl")
+
+function run(ws::Float64, r::Float64)
+    t = Trebuchet(;wind_speed=ws, release_angle=deg2rad(r))
+    simulate(t)
+    visualise(t)
+    t.sol
+end
