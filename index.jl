@@ -1,6 +1,4 @@
-using WebIO
-using Blink
-using JSExpr
+using WebIO, JSExpr
 using DifferentialEquations
 
 struct Lengths{T <: Float64}
@@ -100,9 +98,8 @@ include("utils.jl")
 include("simulate.jl")
 include("visualise.jl")
 
-function run(ws::Float64, r::Float64)
+function Base.run(ws::Float64, r::Float64)
     t = Trebuchet(;wind_speed=ws, release_angle=deg2rad(r))
     simulate(t)
     visualise(t)
-    t.sol
 end

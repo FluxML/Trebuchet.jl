@@ -91,28 +91,35 @@ function animate(ele_name, lengths, sol){
 	next(0);
 }
 
-
-
-function createCanvas(ele_name){
+function _createCanvas(parent_name, ele_name, width){
 	var ele = document.createElement("canvas")
 	ele.setAttribute("id", ele_name);
-	ele.width = window.innerWidth;
+	ele.width = width;
 	ele.height = 450;
-	document.body.appendChild(ele);
+	$$("#" + parent_name).appendChild(ele);
 }
 
 var format = (name) =>
 	name.split("_").map(ele => ele[0].toUpperCase() + ele.slice(1)).join(" ")
 
-function createOutputBar(ele_name, fields){
+var field = (name, val) => '<div class="field">\
+	<label>' + format(name) + '</label>\
+	<div id="' + name + '">' + round2(val[0]) + val[1] + '</div>\
+</div>'
+
+function _createOutputBar(parent_name, ele_name, fields){
 	var ele = document.createElement("div")
 	ele.setAttribute("id", ele_name);
-	var field = (name, val) => '<div class="field">\
-		<label>' + format(name) + '</label>\
-		<div id="' + name + '">' + round2(val[0]) + val[1] + '</div>\
-	</div>'
-
 	ele.innerHTML = Object.keys(fields).map(e=>field(e, fields[e])).join("")
-
-	document.body.appendChild(ele);
+	$$("#" + parent_name).appendChild(ele);
 }
+
+var maybe = (create, old) =>
+	(function(p, ele){
+		$$("#" + ele) ? old(...arguments) : create(...arguments)
+	})
+
+var createCanvas = maybe(_createCanvas, (p, e, w) => $$("#" + e).width = w)
+var createOutputBar = maybe(_createOutputBar, (p, el, f) =>
+		$$("#" + el).innerHTML = Object.keys(f).map(e=>field(e, f[e])).join("")
+);
