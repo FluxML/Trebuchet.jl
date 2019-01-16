@@ -1,6 +1,7 @@
 function visualise(t, scale=10)
    width = abs(Int(round(t.sol.Projectile[end][1]*scale))) + 200
-   files = ["./assets/js/utils.js", "./assets/js/animate.js", "./assets/css/basic.css"]
+   path = p -> normpath("$(@__DIR__)/$p")
+   files = path.(["../assets/js/utils.js", "../assets/js/animate.js", "../assets/css/basic.css"])
    sc = Scope(imports=files)
    c = t.c
    r, ws = c.r, c.w
@@ -20,18 +21,5 @@ function visualise(t, scale=10)
       animate("main", $(t.l), $(t.sol), "output")
    end)
 
-   if @isdefined(IJulia) || @isdefined(Juno)
-      return sc(dom"div#_container_"())
-   elseif @isdefined(Blink)
-      blink(sc(dom"div#_container_"()), width)
-   end
-end
-
-
-function blink(scope, width)
-   w = Blink.Window()
-   opentools(w)
-   position(w, 0, 0)
-   size(w, width, 600)
-   body!(w, scope)
+   sc(dom"div#_container_"())
 end

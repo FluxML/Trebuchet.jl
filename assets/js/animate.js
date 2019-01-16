@@ -16,7 +16,7 @@ function trail(ctx, sol, i){
 }
 
 function display(ctx, max, sol, {a}){
-	console.log(max);
+	// console.log(max);
 	var maxWidth = sol.Projectile[max[0]];
 	var toText = (e) => round2(e) + "m";
 	var wm = new Measure(p([0, -a - 2]), p([maxWidth[0], -a - 2]), p([0, -1]), p([0, 1]), toText(maxWidth[0]), color="#efd248");

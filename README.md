@@ -1,12 +1,15 @@
 # Trebuchet Simulator
 
-## Usage
+## Add package
 ```
-git clone https://github.com/Roboneet/Trebuchet-Simulator.git
-cd Trebuchet-Simulator/
-julia
-]activate .
-]instantiate
+] add https://github.com/Roboneet/Trebuchet.jl
+```
+## Running example
+```
+using Trebuchet
+# using Blink # if not on Juno or IJulia
+using Pkg
+cd(Pkg.dir("Trebuchet"))
 include("example.jl")
 ```
 

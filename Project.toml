@@ -1,5 +1,9 @@
+name = "Trebuchet"
+uuid = "98b73d46-197d-11e9-11eb-69a6ff759d3a"
+authors = ["Roboneet <neethumariyajoy@gmail.com>"]
+version = "0.1.0"
+
 [deps]
-Blink = "ad839575-38b3-5650-b840-f874b8c74a25"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 JSExpr = "97c1335a-c9c5-57fe-bc5d-ec35cebe8660"

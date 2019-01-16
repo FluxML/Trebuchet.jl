@@ -7,12 +7,21 @@ Lengths(::Val{:ft}, args...) = Lengths(ft2m.(args)...)
 Masses(::Val{:lb}, args...) = Masses(lb2kg.(args)...)
 Solution() = Solution([], [], [], [], [], [], [], -1, -1)
 
+function TrebuchetState(;wind_speed::Float64=1.0, release_angle::Float64=deg2rad(45))
+    l = Lengths(Val{:ft}(), 5.0, 6.792, 1.75, 2.0, 6.833, 2.727, 0.1245)
+    m = Masses(Val{:lb}(), 98.09, 0.328, 10.65)
+    c = Constants(wind_speed, 1.0, 1.0, 9.80665, release_angle)
+    t = TrebuchetState(l, m, c, 60)
+    t.i = Inertias(lb2kg(1.0) |> ft2m |> ft2m , t.i.ia)
+    return t
+end
+
 function Base.display(s::Solution)
     println("Solution($(length(s.WeightCG)))")
 end
 
-derive!(t::Trebuchet, sol::AbstractODESolution) = derive(t, sol, t.sol)
-function derive(t::Trebuchet, sol::AbstractODESolution, s = Solution())
+derive!(t::TrebuchetState, sol::AbstractODESolution) = derive(t, sol, t.sol)
+function derive(t::TrebuchetState, sol::AbstractODESolution, s = Solution())
     stage = t.stage
     p = tuples(sol)
     for (x, y) in p
@@ -22,15 +31,15 @@ function derive(t::Trebuchet, sol::AbstractODESolution, s = Solution())
     return s
 end
 
-transition(t::Trebuchet, s::Array) = transition(t::Trebuchet, s::Array, t.stage)
+transition(t::TrebuchetState, s::Array) = transition(t::TrebuchetState, s::Array, t.stage)
 
-function transition(t::Trebuchet, s::Array, ::Val{:Ground})
+function transition(t::TrebuchetState, s::Array, ::Val{:Ground})
     t.stage = Val{:Hang}()
     t.aw = AnglularVelocities(s[4:6]...)
     t.a = Angles(s[1:3]...)
 end
 
-function transition(t::Trebuchet, s::Array, ::Val{:Hang})
+function transition(t::TrebuchetState, s::Array, ::Val{:Hang})
     t.stage = Val{:Released}()
     t.aw = AnglularVelocities(s[4:6]...)
     t.a = Angles(s[1:3]...)
@@ -38,11 +47,11 @@ function transition(t::Trebuchet, s::Array, ::Val{:Hang})
     t.v = sling_velocity(t)
 end
 
-function transition(t::Trebuchet, s::Array, ::Val{:Released})
+function transition(t::TrebuchetState, s::Array, ::Val{:Released})
     t.stage = Val{:End}()
 end
 
-function derive(t::Trebuchet, a::Array, time, ::Union{Val{:Ground},Val{:Hang}}, s=Solution())
+function derive(t::TrebuchetState, a::Array, time, ::Union{Val{:Ground},Val{:Hang}}, s=Solution())
     (Aq, Wq, Sq,) = a
     l = t.l
     LAl, LAs, LW, LS, h = l.b, l.c, l.d, l.e, l.a
@@ -59,7 +68,7 @@ function derive(t::Trebuchet, a::Array, time, ::Union{Val{:Ground},Val{:Hang}}, 
     return s
 end
 
-function derive(t::Trebuchet, a::Array, time, ::Val{:Released}, s=Solution())
+function derive(t::TrebuchetState, a::Array, time, ::Val{:Released}, s=Solution())
     (Px, Py,) = a
     l, an = t.l, t.a
     LAl, LAs, LW, LS, h = l.b, l.c, l.d, l.e, l.a
@@ -99,7 +108,7 @@ function sling_end(t)
    p + q
 end
 
-function sling_velocity(t::Trebuchet)
+function sling_velocity(t::TrebuchetState)
     l, a, aw_ = t.l, t.a, t.aw
     e, b = l.e, l.b
     aq, sq = a.aq, a.sq
@@ -107,12 +116,12 @@ function sling_velocity(t::Trebuchet)
     sling_velocity(t, b, e, aq, sq, aw, sw)
 end
 
-sling_velocity(t::Trebuchet, u::Array) = sling_velocity(t, t.l.b, t.l.e, u[1], u[3], u[4], u[6])
-sling_velocity(t::Trebuchet, b, e, aq, sq, aw, sw) =
+sling_velocity(t::TrebuchetState, u::Array) = sling_velocity(t, t.l.b, t.l.e, u[1], u[3], u[4], u[6])
+sling_velocity(t::TrebuchetState, b, e, aq, sq, aw, sw) =
   polar(-e*(sw + aw),  sq + aq) + polar(-b*aw, aq)
 
-projectile_angle(t::Trebuchet, u::Array) =
+projectile_angle(t::TrebuchetState, u::Array) =
   ∠(sling_velocity(t, u))
 
-endTime(t::Trebuchet) = t.sol.Time[end]
-endDist(t::Trebuchet) = t.sol.Projectile[end][1]
+endTime(t::TrebuchetState) = t.sol.Time[end]
+endDist(t::TrebuchetState) = t.sol.Projectile[end][1]

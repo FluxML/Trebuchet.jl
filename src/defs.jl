@@ -1,6 +1,3 @@
-using WebIO, JSExpr
-using DifferentialEquations
-
 struct Lengths{T <: Float64}
     a::T # height of pivot
     b::T # length of long arm
@@ -59,7 +56,7 @@ mutable struct Solution
     ReleasePositon
 end
 
-mutable struct Trebuchet
+mutable struct TrebuchetState
     l::Lengths
     m::Masses
     a::Angles # [stage 1 & 2]
@@ -71,7 +68,7 @@ mutable struct Trebuchet
     p::Union{Vec,Integer} # projectile point [stage 3]
     v::Union{Vec,Integer} # projectile speed [stage 3]
     sol::Solution
-    function Trebuchet(l::Lengths, m::Masses, c, rate)
+    function TrebuchetState(l::Lengths, m::Masses, c, rate)
         θ = asin(l.a/l.b)
         sq = π - θ
         aq = π/2 + θ
@@ -83,23 +80,4 @@ mutable struct Trebuchet
         i = Inertias(wi, ai)
         new(l, m, a, aw, c, i, Val{:Ground}(), rate, -1, -1, Solution())
     end
-end
-
-function Trebuchet(;wind_speed::Float64=1.0, release_angle::Float64=deg2rad(45))
-    l = Lengths(Val{:ft}(), 5.0, 6.792, 1.75, 2.0, 6.833, 2.727, 0.1245)
-    m = Masses(Val{:lb}(), 98.09, 0.328, 10.65)
-    c = Constants(wind_speed, 1.0, 1.0, 9.80665, release_angle)
-    t = Trebuchet(l, m, c, 60)
-    t.i = Inertias(lb2kg(1.0) |> ft2m |> ft2m , t.i.ia)
-    return t
-end
-
-include("utils.jl")
-include("simulate.jl")
-include("visualise.jl")
-
-function Base.run(ws::Float64, r::Float64)
-    t = Trebuchet(;wind_speed=ws, release_angle=deg2rad(r))
-    simulate(t)
-    visualise(t)
 end

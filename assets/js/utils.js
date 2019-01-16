@@ -1,5 +1,4 @@
 var __ = e => document.querySelector(e);
-var marioMode = false;
 
 var c = 180/Math.PI;
 var deg = (e) => e*c;
@@ -82,12 +81,6 @@ var rad = (e) => e/c;
 
 		ctx.rotate(this.angle);
 
-		if(marioMode){
-			ctx.fillStyle = this.borderColor;
-			ctx.fillRect(0, 0, this.width + 2*this.borderWidth, this.height/2 - 1 + this.borderWidth);
-			ctx.fillRect(0, 0, this.width + 2*this.borderWidth, -this.height/2 + 1 - this.borderWidth);
-		}
-
 		ctx.fillStyle = this.color;
 		ctx.fillRect(0, 0, this.width, this.height/2 - 1);
 		ctx.fillRect(0, 0, this.width, -this.height/2 + 1);
@@ -107,10 +100,6 @@ var rad = (e) => e/c;
 		ctx.fillStyle = this.color;
 		ctx.arc(this.center.x, this.center.y, this.radius, 0, 2*Math.PI);
 		ctx.fill();
-		if(marioMode){
-			ctx.strokeStyle="#000";
-			ctx.stroke()
-		}
 	}
 
 	function Measure(a, b, p, q, val, color="#000", textColor="#000"){

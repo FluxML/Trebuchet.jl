@@ -15,9 +15,9 @@ function simulate(t)
    return t.sol
 end
 
-simulate_(t::Trebuchet, time) = simulate_(t, time, t.stage)
+simulate_(t::TrebuchetState, time) = simulate_(t, time, t.stage)
 
-function simulate_(t::Trebuchet, time, ::Val{:Ground})
+function simulate_(t::TrebuchetState, time, ::Val{:Ground})
     a = t.a
     aw = t.aw
     u0 = [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
@@ -39,7 +39,7 @@ function simulate_(t::Trebuchet, time, ::Val{:Ground})
     solve(prob, Tsit5(), saveat=1/(t.rate), callback=cb)
 end
 
-function simulate_(t::Trebuchet, time, ::Val{:Hang})
+function simulate_(t::TrebuchetState, time, ::Val{:Hang})
     a, aw = t.a, t.aw
     r = t.c.r
     u0 = [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
@@ -54,7 +54,7 @@ function simulate_(t::Trebuchet, time, ::Val{:Hang})
 end
 
 
-function simulate_(t::Trebuchet, time, ::Val{:Released})
+function simulate_(t::TrebuchetState, time, ::Val{:Released})
     a = t.l.a
     u0 = [t.p.x, t.p.y, t.v.x, t.v.y]
     ti = (time, 5.0 + time)
@@ -67,7 +67,7 @@ function simulate_(t::Trebuchet, time, ::Val{:Released})
     solve(prob, Tsit5(), saveat=1/(t.rate), callback=cb)
 end
 
-function stage1!(du, u, p::Trebuchet, t)
+function stage1!(du, u, p::TrebuchetState, t)
     l, a, m, i = p.l, p.a, p.m, p.i
     LAl, LAs, LW, LS, h = l.b, l.c, l.d, l.e, l.a
     mA, mW, mP = m.a, m.w, m.p
@@ -106,7 +106,7 @@ function stage1!(du, u, p::Trebuchet, t)
     du[6] = dSw
 end
 
-function stage2!(du, u, p::Trebuchet, t)
+function stage2!(du, u, p::TrebuchetState, t)
     l, a, m, i = p.l, p.a, p.m, p.i
     LAl, LAs, LW, LS, h = l.b, l.c, l.d, l.e, l.a
     mA, mW, mP = m.a, m.w, m.p
@@ -152,7 +152,7 @@ function stage2!(du, u, p::Trebuchet, t)
     du[6] = dSw
 end
 
-function stage3!(du, u, pr::Trebuchet, t)
+function stage3!(du, u, pr::TrebuchetState, t)
     c = pr.c
     Grav = c.Grav
     ρ = c.ρ
