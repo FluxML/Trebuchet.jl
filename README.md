@@ -12,12 +12,13 @@ Simulate and visualise a Trebuchet
 # using Blink # if not on Juno or IJulia
 using Trebuchet
 
-t = TrebuchetState(;wind_speed=10.0, release_angle=deg2rad(33.25))
+t = TrebuchetState()
 simulate(t)
-scope = visualise(t)
 
 if @isdefined(Blink)
-  body!(Blink.Window(), scope)
+  body!(Blink.Window(), visualise(t))
+else
+  visualise(t)
 end
 
 ```

@@ -7,18 +7,18 @@ Lengths(::Val{:ft}, args...) = Lengths(ft2m.(args)...)
 Masses(::Val{:lb}, args...) = Masses(lb2kg.(args)...)
 Solution() = Solution([], [], [], [], [], [], [], -1, -1)
 
-function TrebuchetState(;wind_speed::Float64=1.0, release_angle::Float64=deg2rad(45))
+function TrebuchetState(;wind_speed::T=1.0, release_angle::T=deg2rad(45), weight::T=98.09) where {T<:Float64}
     l = Lengths(Val{:ft}(), 5.0, 6.792, 1.75, 2.0, 6.833, 2.727, 0.1245)
-    m = Masses(Val{:lb}(), 98.09, 0.328, 10.65)
+    m = Masses(Val{:lb}(), weight, 0.328, 10.65)
     c = Constants(wind_speed, 1.0, 1.0, 9.80665, release_angle)
     t = TrebuchetState(l, m, c, 60)
     t.i = Inertias(lb2kg(1.0) |> ft2m |> ft2m , t.i.ia)
     return t
 end
 
-function Base.display(s::Solution)
-    println("Solution($(length(s.WeightCG)))")
-end
+Base.display(s::Solution) = Base.show(stdin, s)
+Base.show(io::IO, ::MIME"text/plain", s::Solution) = Base.show(io, s)
+Base.show(io::IO, s::Solution) = println(io, "Solution($(length(s.WeightCG)))")
 
 derive!(t::TrebuchetState, sol::AbstractODESolution) = derive(t, sol, t.sol)
 function derive(t::TrebuchetState, sol::AbstractODESolution, s = Solution())
