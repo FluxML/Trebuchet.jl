@@ -3,12 +3,12 @@
 Simulate and visualise a Trebuchet
 
 ## Add package
-```
+```julia
 ] add https://github.com/Roboneet/Trebuchet.jl
 ```
 
 ## Run example
-```
+```julia
 # using Blink # if not on Juno or IJulia
 using Trebuchet
 
