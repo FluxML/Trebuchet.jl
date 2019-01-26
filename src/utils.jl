@@ -7,7 +7,7 @@ Lengths(::Val{:ft}, args...) = Lengths(ft2m.(args)...)
 Masses(::Val{:lb}, args...) = Masses(lb2kg.(args)...)
 Solution() = Solution([], [], [], [], [], [], [], -1, -1)
 
-function TrebuchetState(;wind_speed::T=1.0, release_angle::T=deg2rad(45), weight::T=98.09) where {T<:Float64}
+function TrebuchetState(;wind_speed=1.0, release_angle=deg2rad(45), weight=98.09)
     l = Lengths(Val{:ft}(), 5.0, 6.792, 1.75, 2.0, 6.833, 2.727, 0.1245)
     m = Masses(Val{:lb}(), weight, 0.328, 10.65)
     c = Constants(wind_speed, 1.0, 1.0, 9.80665, release_angle)

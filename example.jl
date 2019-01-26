@@ -1,6 +1,6 @@
 using Trebuchet
 
-function Base.run(ws::Float64, r::Float64)
+function Base.run(ws, r)
     t = TrebuchetState(;wind_speed=ws, release_angle=deg2rad(r))
     simulate(t)
     scope = visualise(t)

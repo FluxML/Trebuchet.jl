@@ -1,47 +1,47 @@
-struct Lengths{T <: Float64}
-    a::T # height of pivot
-    b::T # length of long arm
-    c::T # length of short arm
-    d::T # lenght of weight arm
-    e::T # length of sling
-    u::T # radius of weight
-    z::T # radius of projectile
+struct Lengths
+    a # height of pivot
+    b # length of long arm
+    c # length of short arm
+    d # lenght of weight arm
+    e # length of sling
+    u # radius of weight
+    z # radius of projectile
 end
 
-struct Masses{T<:Float64}
-    w::T # mass of weight
-    p::T # mass of projectile
-    a::T # mass of arm
+struct Masses
+    w # mass of weight
+    p # mass of projectile
+    a # mass of arm
 end
 
-struct Angles{T<:Float64} # in radians
-    aq::T # angle between pivot stand and arm
-    wq::T # angle between arm and weight
-    sq::T # angle between arm and sling
+struct Angles # in radians
+    aq # angle between pivot stand and arm
+    wq # angle between arm and weight
+    sq # angle between arm and sling
 end
 
-struct AnglularVelocities{T<:Float64}
-    aw::T # for aq
-    ww::T # for wq
-    sw::T # for sq
+struct AnglularVelocities
+    aw # for aq
+    ww # for wq
+    sw # for sq
 end
 
-struct Inertias{T<:Float64}
-    iw::T # inertia of weight
-    ia::T # inertia of arm
+struct Inertias
+    iw # inertia of weight
+    ia # inertia of arm
 end
 
-struct Vec{T<:Float64}
-    x::T
-    y::T
+struct Vec
+    x
+    y
 end
 
-struct Constants{T<:Float64}
-    w::T # wind speed
-    ρ::T # Density of Air
-    Cd::T # Drag Co-efficient of Projectile
-    Grav::T
-    r::T # release angle of projectile [input]
+struct Constants
+    w # wind speed
+    ρ # Density of Air
+    Cd # Drag Co-efficient of Projectile
+    Grav
+    r # release angle of projectile [input]
 end
 
 mutable struct Solution
@@ -65,8 +65,8 @@ mutable struct TrebuchetState
     i::Inertias
     stage::Union{Val{:Ground},Val{:Hang},Val{:Released},Val{:End}}
     rate::Integer
-    p::Union{Vec,Integer} # projectile point [stage 3]
-    v::Union{Vec,Integer} # projectile speed [stage 3]
+    p # projectile point [stage 3]
+    v # projectile speed [stage 3]
     sol::Solution
     function TrebuchetState(l::Lengths, m::Masses, c, rate)
         θ = asin(l.a/l.b)
