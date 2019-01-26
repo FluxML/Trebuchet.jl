@@ -1,6 +1,5 @@
 var $$ = (e) => document.querySelector(e);
-var scale = 10;
-var p = (e, color="#000") => new Point(e[0]*scale, -e[1]*scale, color)
+
 var round2 = (x) => Math.round(x*100)/100
 
 function setVal(ele, val){
@@ -8,14 +7,9 @@ function setVal(ele, val){
 	ele.innerText = val.toString();
 }
 
-function trail(ctx, sol, i){
-	var j = 0;
-	for(j = 0; j < i; j++){
-		(new Circle(p(sol.Projectile[j]), scale/20)).draw(ctx);
-	}
-}
 
-function display(ctx, max, sol, {a}){
+function display(ctx, max, sol, {a}, scale){
+	var p = (e, color="#000") => new Point(e[0]*scale, -e[1]*scale, color)
 	// console.log(max);
 	var maxWidth = sol.Projectile[max[0]];
 	var toText = (e) => round2(e) + "m";
@@ -26,7 +20,15 @@ function display(ctx, max, sol, {a}){
 	hm.draw(ctx);
 }
 
-function plot(ctx, sol, i, {a}){
+function plot(ctx, sol, i, {a}, scale){
+	var p = (e, color="#000") => new Point(e[0]*scale, -e[1]*scale, color)
+
+	function trail(ctx, sol, i){
+		var j = 0;
+		for(j = 0; j < i; j++){
+			(new Circle(p(sol.Projectile[j]), scale/20)).draw(ctx);
+		}
+	}
 
 	var X = p(sol.WeightArm[i]);
 	var Y = p(sol.ArmSling[i]);
@@ -49,81 +51,113 @@ function plot(ctx, sol, i, {a}){
 
 	[bcLine, aRect, bcRect, dLine, eLine, PCircle, UCircle].forEach(e => e.draw(ctx));
 
-
 	setVal($$("#time"), round2(sol.Time[i]) + "s");
 	setVal($$("#distance"), round2(sol.Projectile[i][0]) + "m");
 	setVal($$("#height"), round2(sol.Projectile[i][1] + a) + "m");
 	trail(ctx, sol, i)
-
 }
 
 
-function animate(ele_name, lengths, sol, bb){
-	var canvas = document.querySelector("#" + ele_name);
+function Animation(parent_name, ele_name, lengths, sol, bb){
+	this.ele_name = ele_name;
+	this.selector = "div[data-webio-scope-id=" + parent_name + "] #" + ele_name
+	this.canvas = document.querySelector(this.selector);
 
-	var {top, bottom, left, right} = bb;
+	this.ctx = this.canvas.getContext("2d");
+	this.lengths = lengths;
+	this.sol = sol;
+	this.bb = bb;
+	this.index = 0;
+	this.scale = window.scale;
+	this.origin = null;
+	this.pad =  100; // in pixels
+	this.reserved = 110; // in pixels
+	this.running = false;
+	this.max_i = [0, 0];
+	this.time = 10;
+	this.end = sol.WeightCG.length;
 
-	var width = right - left;
-	var height = top - bottom;
-	var ar = width/height;
+	this.resize = function(){
+		var {ele_name, bb, scale, pad, reserved, canvas} = this;
 
-	var pad = 100; // in pixels
-	var reserved = 110; // in pixels
-	var maxWidth, maxHeight;
-	var is_iJulia = false;
-	if($$(".notebook_app")){
-		is_iJulia = true;
-		// inside IJulia
-		console.log("IJulia detected")
-		var outputArea = canvas.parentNode.parentNode;
-		maxWidth = outputArea.offsetWidth - pad;
-		maxHeight = maxWidth*height/width;
-	}else{
-		maxWidth = window.innerWidth - pad;
-		maxHeight = window.innerHeight - pad - reserved;
-	}
+		var {top, bottom, left, right} = bb;
 
-	scale = maxWidth/width;
-	if(!is_iJulia && height*scale > maxHeight){
-		scale = maxHeight/height;
-	}
-	if(!is_iJulia){
-		canvas.style.width = "100vw";
-		canvas.style.height = "calc(100vw/" + ar + ")";
-	}
+		var width = right - left;
+		var height = top - bottom;
+		var ar = width/height;
 
-	canvas.width = width*scale + pad;
-	canvas.height = height*scale + pad;
-
-	var i = 0;
-
-	var ctx = canvas.getContext("2d");
-	var len = sol.WeightCG.length;
-	var max_i = [len - 1, Math.round(len/2)];
-	var origin = new Point(pad/2 - left*scale, pad/2 + top*scale);
-	var time = 10;
-
-	// origin.translate(ctx,
-	// 	() => new Array(len).fill(0).map((_, i) => plot(ctx, sol, i, lengths)))
-
-	var comp = (i, j) => {
-		if(sol.Projectile[i][j] > sol.Projectile[max_i[j]][j]){
-			max_i[j] = i
+		var maxWidth, maxHeight;
+		var is_iJulia = false;
+		if($$(".notebook_app")){
+			is_iJulia = true;
+			// inside IJulia
+			console.log("IJulia detected")
+			var outputArea = canvas.parentNode.parentNode;
+			maxWidth = outputArea.offsetWidth - pad;
+			maxHeight = maxWidth*height/width;
+		}else{
+			maxWidth = window.innerWidth - pad;
+			maxHeight = window.innerHeight - pad - reserved;
 		}
+
+		scale = maxWidth/width;
+
+		if(!is_iJulia && height*scale > maxHeight){
+			scale = maxHeight/height;
+		}
+		if(!is_iJulia){
+			canvas.style.width = "100vw";
+			canvas.style.height = "calc(100vw/" + ar + ")";
+		}
+		canvas.width = width*scale + pad;
+		canvas.height = height*scale + pad;
+		this.origin = new Point(pad/2 - left*scale, pad/2 + top*scale);
+		this.scale = scale;
 	}
 
-	var next = (i) =>{
+	this.run = function(){
+		this.running = true;
+		this.resize();
+		this.index = 0;
+		this.draw();
+	}
+
+	this.draw = function(){
+		var {canvas, ctx, max_i, sol, lengths, time, origin, scale} = this;
+		// console.log(scale)
+		var i = this.index;
+		var len = this.end;
 		if(i == len){
-			origin.translate(ctx, ()=>display(ctx, max_i, sol, lengths));
-				return
+			origin.translate(ctx, () => plot(ctx, sol, i-1, lengths, scale));
+			origin.translate(ctx, ()=>display(ctx, max_i, sol, lengths, scale));
+			this.running = false;
+			return
+		}
+		var comp = (i, j) => {
+			if(sol.Projectile[i][j] > sol.Projectile[max_i[j]][j]){
+				max_i[j] = i
+			}
 		}
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 		comp(i, 0);
 		comp(i, 1);
-		origin.translate(ctx, () => plot(ctx, sol, i, lengths))
-		setTimeout(() => next(i + 1), time);
+		origin.translate(ctx, () => plot(ctx, sol, i, lengths, scale));
+		this.index += 1
+		setTimeout(this.draw.bind(this), time);
 	}
-	next(0);
+
+
+}
+
+function animate(parent_name, ele_name, lengths, sol, bb){
+	var a = new Animation(parent_name, ele_name, lengths, sol, bb);
+	window.onresize = () => {
+		a.resize();
+		if(!a.running){
+			a.draw();
+		}
+	}
+	a.run();
 }
 
 function _createCanvas(parent_name, ele_name){

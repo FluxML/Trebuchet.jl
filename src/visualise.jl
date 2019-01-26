@@ -1,4 +1,4 @@
-function visualise(t, scale=10)
+function visualise(t)
    top, right, bottom, left = boundingbox(t)
 
    path = p -> normpath("$(@__DIR__)/$p")
@@ -23,10 +23,9 @@ function visualise(t, scale=10)
    )
    id = sc.id
    onimport(sc,  @js function ()
-      window.scale = $(scale);
       createCanvas($(id), "main");
       createOutputBar($(id), "output", $(fields));
-      animate("main", $(t.l), $(t.sol), $(bb))
+      animate($(id), "main", $(t.l), $(t.sol), $(bb))
    end)
 
 
