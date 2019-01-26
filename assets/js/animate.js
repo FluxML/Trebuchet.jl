@@ -58,14 +58,49 @@ function plot(ctx, sol, i, {a}){
 }
 
 
-function animate(ele_name, lengths, sol){
+function animate(ele_name, lengths, sol, bb){
+	var canvas = document.querySelector("#" + ele_name);
+
+	var {top, bottom, left, right} = bb;
+
+	var width = right - left;
+	var height = top - bottom;
+	var ar = width/height;
+
+	var pad = 100; // in pixels
+	var reserved = 110; // in pixels
+	var maxWidth, maxHeight;
+	var is_iJulia = false;
+	if($$(".notebook_app")){
+		is_iJulia = true;
+		// inside IJulia
+		console.log("IJulia detected")
+		var outputArea = canvas.parentNode.parentNode;
+		maxWidth = outputArea.offsetWidth - pad;
+		maxHeight = maxWidth*height/width;
+	}else{
+		maxWidth = window.innerWidth - pad;
+		maxHeight = window.innerHeight - pad - reserved;
+	}
+
+	scale = maxWidth/width;
+	if(!is_iJulia && height*scale > maxHeight){
+		scale = maxHeight/height;
+	}
+	if(!is_iJulia){
+		canvas.style.width = "100vw";
+		canvas.style.height = "calc(100vw/" + ar + ")";
+	}
+
+	canvas.width = width*scale + pad;
+	canvas.height = height*scale + pad;
 
 	var i = 0;
-	var canvas = document.querySelector("#" + ele_name);
+
 	var ctx = canvas.getContext("2d");
 	var len = sol.WeightCG.length;
 	var max_i = [len - 1, Math.round(len/2)];
-	var origin = new Point(100, canvas.height - 8*scale);
+	var origin = new Point(pad/2 - left*scale, pad/2 + top*scale);
 	var time = 10;
 
 	// origin.translate(ctx,
@@ -91,12 +126,10 @@ function animate(ele_name, lengths, sol){
 	next(0);
 }
 
-function _createCanvas(parent_name, ele_name, width){
+function _createCanvas(parent_name, ele_name){
 	var ele = document.createElement("canvas")
 	ele.setAttribute("id", ele_name);
-	ele.width = width;
-	ele.height = 450;
-	$$("#" + parent_name).appendChild(ele);
+	$$("div[data-webio-scope-id=" + parent_name + "]").appendChild(ele);
 }
 
 var format = (name) =>
@@ -111,12 +144,12 @@ function _createOutputBar(parent_name, ele_name, fields){
 	var ele = document.createElement("div")
 	ele.setAttribute("id", ele_name);
 	ele.innerHTML = Object.keys(fields).map(e=>field(e, fields[e])).join("")
-	$$("#" + parent_name).appendChild(ele);
+	$$("div[data-webio-scope-id=" + parent_name + "]").appendChild(ele);
 }
 
 var maybe = (create, old) =>
 	(function(p, ele){
-		$$("#" + ele) ? old(...arguments) : create(...arguments)
+		$$("div[data-webio-scope-id=" + p +"] #" + ele) ? old(...arguments) : create(...arguments)
 	})
 
 var createCanvas = maybe(_createCanvas, (p, e, w) => $$("#" + e).width = w)

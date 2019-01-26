@@ -20,12 +20,12 @@ canvas{
 }
 
 .field > div{
-  width: 100px;
+  width: 150px;
   text-align: left;
 }
 
 label{
-  width: 200px;
+  width: 150px;
   text-align: right;
   padding: 0 10px;
 }
