@@ -31,8 +31,8 @@ function simulate_(t::TrebuchetState{T}, time, ::Val{:Ground}) where {T}
             time == it.tprev && return mg
             acc = (sling_velocity(t, u) - sling_velocity(t, it.uprev))/(time - it.tprev)
             θ = u[1] + u[3] - π
-            T = -acc.x*m/sin(θ)
-            mg - T*cos(θ)
+            Tn = -acc.x*m/sin(θ)
+            mg - Tn*cos(θ)
         end,
         (i) -> terminate!(i))
 

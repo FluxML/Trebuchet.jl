@@ -2,7 +2,7 @@ Base.Integer(x::Dual{T,V,N}) where {T,V,N} =
     Dual{T}(Int(value(x)), convert(Partials{N,Int}, partials(x)))
 
 # just a hack for OrdinaryDiffEq.jl/src/solve.jl:378
-Base.OneTo(x::Dual) = value(x)
+Base.OneTo(x::Dual) = Base.OneTo(value(x))
 
 function shoot((ws, angle, w))
   t = TrebuchetState(;wind_speed=ws, release_angle=angle, weight=w)
