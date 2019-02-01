@@ -1,8 +1,8 @@
 Base.Integer(x::Dual{T,V,N}) where {T,V,N} =
-    Dual{T}(Base.Integer(x.value), zero(Partials{N,Base.Integer}))
+    Dual{T}(Int(value(x)), convert(Partials{N,Int}, partials(x)))
 
-# just a hack for OrdinaryDiffEq.jl/src/solve.jl:389
-Base.OneTo(x::Dual) = Base.OneTo(x.value)
+# just a hack for OrdinaryDiffEq.jl/src/solve.jl:378
+Base.OneTo(x::Dual) = value(x)
 
 function shoot((ws, angle, w))
   t = TrebuchetState(;wind_speed=ws, release_angle=angle, weight=w)
@@ -11,3 +11,6 @@ function shoot((ws, angle, w))
 end
 
 grad(x) = ForwardDiff.gradient((x) -> shoot(Tuple(x))[2], x)
+
+# x - 1
+Base.prevfloat(x::Dual{T, V, N}) where {T,V,N} = Dual{T}(prevfloat(x.value), x.partials)
