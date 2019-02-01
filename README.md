@@ -21,6 +21,9 @@ else
   visualise(t)
 end
 
+# to find the gradient w.r.t (wind_speed, release_angle, weight)
+Trebuchet.grad([10.0, 1.0, 1.0])
+
 ```
 
 Credits: http://www.virtualtrebuchet.com/#documentation_EquationsOfMotion

@@ -17,11 +17,11 @@ end
 
 simulate_(t::TrebuchetState, time) = simulate_(t, time, t.stage)
 
-function simulate_(t::TrebuchetState, time, ::Val{:Ground})
+function simulate_(t::TrebuchetState{T}, time, ::Val{:Ground}) where {T}
     a = t.a
     aw = t.aw
-    u0 = [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
-    ti = (time, time + 1.0)
+    u0 = T[a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
+    ti = T.((time, time + 1.0))
     prob = ODEProblem(stage1!, u0, ti, t)
 
     cb = ContinuousCallback(
@@ -39,11 +39,11 @@ function simulate_(t::TrebuchetState, time, ::Val{:Ground})
     solve(prob, Tsit5(), saveat=1/(t.rate), callback=cb)
 end
 
-function simulate_(t::TrebuchetState, time, ::Val{:Hang})
+function simulate_(t::TrebuchetState{T}, time, ::Val{:Hang}) where {T}
     a, aw = t.a, t.aw
     r = t.c.r
-    u0 = [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
-    ti = (time, time + 1.0)
+    u0 = T[a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
+    ti = T.((time, time + 1.0))
     prob = ODEProblem(stage2!, u0, ti, t)
 
     cb = ContinuousCallback(
@@ -54,10 +54,10 @@ function simulate_(t::TrebuchetState, time, ::Val{:Hang})
 end
 
 
-function simulate_(t::TrebuchetState, time, ::Val{:Released})
+function simulate_(t::TrebuchetState{T}, time, ::Val{:Released}) where {T}
     a = t.l.a
-    u0 = [t.p.x, t.p.y, t.v.x, t.v.y]
-    ti = (time, 5.0 + time)
+    u0 = T[t.p.x, t.p.y, t.v.x, t.v.y]
+    ti = T.((time, 5.0 + time))
     prob = ODEProblem(stage3!, u0, ti, t)
 
     cb = ContinuousCallback(

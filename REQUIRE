@@ -3,3 +3,4 @@ DiffEqBase
 DifferentialEquations
 JSExpr
 WebIO
+ForwardDiff
