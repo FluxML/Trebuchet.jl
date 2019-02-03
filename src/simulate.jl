@@ -36,7 +36,7 @@ function simulate_(t::TrebuchetState{T}, time, ::Val{:Ground}) where {T}
         end,
         (i) -> terminate!(i))
 
-    solve(prob, Tsit5(), saveat=1/(t.rate), callback=cb)
+    solve(prob, Tsit5(), saveat=expand(ti[1], 1/(t.rate),ti[2]), callback=cb)
 end
 
 function simulate_(t::TrebuchetState{T}, time, ::Val{:Hang}) where {T}
@@ -50,7 +50,7 @@ function simulate_(t::TrebuchetState{T}, time, ::Val{:Hang}) where {T}
         (u, time, it) -> sin(projectile_angle(t, u) - r),
         (i) -> terminate!(i))
 
-    solve(prob, Tsit5(), callback=cb, saveat=1/(t.rate))
+    solve(prob, Tsit5(), callback=cb, saveat=expand(ti[1], 1/(t.rate), ti[2]))
 end
 
 
@@ -64,7 +64,7 @@ function simulate_(t::TrebuchetState{T}, time, ::Val{:Released}) where {T}
         (u, time, it) -> u[2] + a,
         (it) -> terminate!(it))
 
-    solve(prob, Tsit5(), saveat=1/(t.rate), callback=cb)
+    solve(prob, Tsit5(), saveat=expand(ti[1], 1/(t.rate),ti[2]), callback=cb)
 end
 
 function stage1!(du, u, p::TrebuchetState, t)

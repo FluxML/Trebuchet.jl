@@ -1,5 +1,13 @@
 using DiffEqBase: AbstractODESolution
 
+function shoot((ws, angle, w))
+  t = TrebuchetState(;wind_speed=ws, release_angle=angle, weight=w)
+  simulate(t)
+  (t, endDist(t))
+end
+
+shoot(x...) = shoot(x)
+
 ft2m(x) = x*0.3048
 lb2kg(x) = x*0.45359237
 
@@ -126,3 +134,16 @@ projectile_angle(t::TrebuchetState, u::Array) =
 
 endTime(t::TrebuchetState) = t.sol.Time[end]
 endDist(t::TrebuchetState) = t.sol.Projectile[end][1]
+
+function expand(init::T, diff::T, end_ele::T) where {T}
+    l = floor(Int, (end_ele - init + diff)/diff)
+    arr = zeros(T, l)
+    ele = init
+    index = 1
+    while index <= l
+        arr[index] = ele
+        ele += diff
+        index += 1
+    end
+    return arr
+end

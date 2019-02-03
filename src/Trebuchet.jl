@@ -2,8 +2,6 @@ module Trebuchet
 
 using WebIO, JSExpr
 using DifferentialEquations
-using ForwardDiff
-using ForwardDiff: Dual, Partials, value, partials
 
 export TrebuchetState, simulate, visualise, run
 
