@@ -38,7 +38,7 @@ function plot(ctx, sol, i, {a}, scale){
 	var O = p([0, 0]);
 	var V = p([0, -a])
 
-	var aLine = new Line(V, O);
+	var aLine = new Line(V, O, "#925c1d");
 	var bcLine = new Line(X, Y);
 	var dLine = new Line(X, U);
 	var eLine = new Line(Y, Z);
@@ -49,7 +49,7 @@ function plot(ctx, sol, i, {a}, scale){
 	var PCircle = new Circle(P, scale/5);
 	var UCircle = new Circle(U, scale/3);
 
-	[bcLine, aRect, bcRect, dLine, eLine, PCircle, UCircle].forEach(e => e.draw(ctx));
+	[aLine, bcLine, aRect, bcRect, dLine, eLine, PCircle, UCircle].forEach(e => e.draw(ctx));
 
 	setVal($$("#time"), round2(sol.Time[i]) + "s");
 	setVal($$("#distance"), round2(sol.Projectile[i][0]) + "m");
@@ -82,8 +82,16 @@ function Animation(parent_name, ele_name, lengths, sol, bb){
 
 		var {top, bottom, left, right} = bb;
 
-		var width = right - left;
-		var height = top - bottom;
+		var {a, b, c} = lengths;
+
+		right = Math.max(c, right);
+		left = Math.min(left,  -b);
+		top = Math.max(top, c);
+		bottom = Math.min(bottom, -a);
+
+		var width =  right - left;
+		var height =  top - bottom;
+
 		var ar = width/height;
 
 		var maxWidth, maxHeight;
@@ -105,10 +113,7 @@ function Animation(parent_name, ele_name, lengths, sol, bb){
 		if(!is_iJulia && height*scale > maxHeight){
 			scale = maxHeight/height;
 		}
-		if(!is_iJulia){
-			canvas.style.width = "100vw";
-			canvas.style.height = "calc(100vw/" + ar + ")";
-		}
+		scale = Math.min(scale, canvas.height/(2*lengths.a))
 		canvas.width = width*scale + pad;
 		canvas.height = height*scale + pad;
 		this.origin = new Point(pad/2 - left*scale, pad/2 + top*scale);

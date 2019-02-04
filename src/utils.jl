@@ -2,6 +2,10 @@ using DiffEqBase: AbstractODESolution
 
 function shoot((ws, angle, w))
   t = TrebuchetState(;wind_speed=ws, release_angle=angle, weight=w)
+  if w <= 0
+      @info "negative weight"
+      return (t, sling_end(t).x)
+  end
   simulate(t)
   (t, endDist(t))
 end
@@ -29,71 +33,7 @@ Base.display(s::Solution) = Base.show(stdin, s)
 Base.show(io::IO, ::MIME"text/plain", s::Solution) = Base.show(io, s)
 Base.show(io::IO, s::Solution) = println(io, "Solution($(length(s.WeightCG)))")
 
-derive!(t::TrebuchetState, sol::AbstractODESolution) = derive(t, sol, t.sol)
-function derive(t::TrebuchetState, sol::AbstractODESolution, s = Solution())
-    stage = t.stage
-    p = tuples(sol)
-    for (x, y) in p
-        derive(t, x, y, stage, s)
-    end
-    transition(t, p[end][1], stage)
-    return s
-end
-
-transition(t::TrebuchetState, s::Array) = transition(t::TrebuchetState, s::Array, t.stage)
-
-function transition(t::TrebuchetState, s::Array, ::Val{:Ground})
-    t.stage = Val{:Hang}()
-    t.aw = AnglularVelocities(s[4:6]...)
-    t.a = Angles(s[1:3]...)
-end
-
-function transition(t::TrebuchetState, s::Array, ::Val{:Hang})
-    t.stage = Val{:Released}()
-    t.aw = AnglularVelocities(s[4:6]...)
-    t.a = Angles(s[1:3]...)
-    t.p = sling_end(t)
-    t.v = sling_velocity(t)
-end
-
-function transition(t::TrebuchetState, s::Array, ::Val{:Released})
-    t.stage = Val{:End}()
-end
-
-function derive(t::TrebuchetState, a::Array, time, ::Union{Val{:Ground},Val{:Hang}}, s=Solution())
-    (Aq, Wq, Sq,) = a
-    l = t.l
-    LAl, LAs, LW, LS, h = l.b, l.c, l.d, l.e, l.a
-    LAcg = (LAl - LAs)/2
-    SIN = sin
-    COS = cos
-    push!(s.WeightCG, [LAs*SIN(Aq) + LW*SIN(Aq+Wq), -LAs*COS(Aq) - LW*COS(Aq+Wq)])
-    push!(s.WeightArm, [LAs*SIN(Aq), -LAs*COS(Aq)])
-    push!(s.ArmSling, [-LAl*SIN(Aq), LAl*COS(Aq)])
-    push!(s.Projectile, [-LAl*SIN(Aq) - LS*SIN(Aq+Sq), LAl*COS(Aq) + LS*COS(Aq+Sq)])
-    push!(s.SlingEnd,[-LAl*SIN(Aq) - LS*SIN(Aq+Sq), LAl*COS(Aq) + LS*COS(Aq+Sq)])
-    push!(s.ArmCG, [-LAcg*SIN(Aq), LAcg*COS(Aq)])
-    push!(s.Time, time)
-    return s
-end
-
-function derive(t::TrebuchetState, a::Array, time, ::Val{:Released}, s=Solution())
-    (Px, Py,) = a
-    l, an = t.l, t.a
-    LAl, LAs, LW, LS, h = l.b, l.c, l.d, l.e, l.a
-    Aq, Wq, Sq = an.aq, an.wq, an.sq
-    LAcg = (LAl - LAs)/2
-    SIN = sin
-    COS = cos
-    push!(s.WeightCG, [LAs*SIN(Aq) + LW*SIN(Aq+Wq), -LAs*COS(Aq) - LW*COS(Aq+Wq)])
-    push!(s.WeightArm, [LAs*SIN(Aq), -LAs*COS(Aq)])
-    push!(s.ArmSling, [-LAl*SIN(Aq), LAl*COS(Aq)])
-    push!(s.Projectile, [Px, Py])
-    push!(s.SlingEnd,[-LAl*SIN(Aq) - LS*SIN(Aq+Sq), LAl*COS(Aq) + LS*COS(Aq+Sq)])
-    push!(s.ArmCG, [-LAcg*SIN(Aq), LAcg*COS(Aq)])
-    push!(s.Time, time)
-    return s
-end
+approx_less(a, b, atol=1e-2) = isapprox(a, b, atol=atol) || a < b
 
 Base.:+(a::Vec, b::Vec) = Vec(a.x + b.x, a.y + b.y)
 Base.:-(a::Vec, b::Vec) = Vec(a.x - b.x, a.y - b.y)

@@ -5,12 +5,9 @@ function simulate(t)
    time = 0.0
    while !isa(t.stage, Val{:End})
       s = simulate_(t, time)
-      time += s.t[end]
+      time = s.t[end]
       derive!(t, s)
-      if (isa(t.stage, Val{:Released}))
-         t.sol.ReleaseVelocity = t.p
-         t.sol.ReleasePositon = t.v
-      end
+      transition(t, s[end])
    end
    return t.sol
 end
@@ -24,19 +21,30 @@ function simulate_(t::TrebuchetState{T}, time, ::Val{:Ground}) where {T}
     ti = T.((time, time + 1.0))
     prob = ODEProblem(stage1!, u0, ti, t)
 
-    cb = ContinuousCallback(
+    string_tension = (u, time, it, θ) -> begin
+        m = t.m.p
+        time == it.tprev && return 0
+        acc = (sling_velocity(t, u) - sling_velocity(t, it.uprev))/(time - it.tprev)
+        Tn = -acc.x*m/sin(θ)
+    end
+
+
+    ccb = ContinuousCallback(
         (u, time, it) -> begin
-            m = t.m.p
-            mg = m*t.c.Grav
-            time == it.tprev && return mg
-            acc = (sling_velocity(t, u) - sling_velocity(t, it.uprev))/(time - it.tprev)
+            mg = t.m.p * t.c.Grav
             θ = u[1] + u[3] - π
-            Tn = -acc.x*m/sin(θ)
+            Tn = string_tension(u, time, it, θ)
+            t.Tn = Tn
             mg - Tn*cos(θ)
         end,
         (i) -> terminate!(i))
 
-    solve(prob, Tsit5(), saveat=expand(ti[1], 1/(t.rate),ti[2]), callback=cb)
+    dcb = DiscreteCallback(
+        (u, time, it) -> t.Tn < zero(typeof(t.Tn)), # loose string case
+        (i) -> terminate!(i)
+    )
+
+    solve(prob, Tsit5(), saveat=expand(ti[1], 1/(t.rate),ti[2]), callback=CallbackSet(ccb, dcb))
 end
 
 function simulate_(t::TrebuchetState{T}, time, ::Val{:Hang}) where {T}
