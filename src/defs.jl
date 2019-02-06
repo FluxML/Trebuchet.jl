@@ -56,7 +56,7 @@ mutable struct Solution
     ReleasePositon
 end
 
-mutable struct TrebuchetState{T}
+mutable struct TrebuchetState
     l::Lengths
     m::Masses
     a::Angles # [stage 1 & 2]
@@ -69,7 +69,7 @@ mutable struct TrebuchetState{T}
     v # projectile speed [stage 3]
     sol::Solution
     Tn # tension on string
-    function TrebuchetState(l::Lengths{T}, m::Masses{T}, c::Constants{T}, rate::T) where {T}
+    function TrebuchetState(l::Lengths, m::Masses, c::Constants, rate)
         θ = asin(l.a/l.b)
         sq = π - θ
         aq = π/2 + θ
@@ -79,6 +79,6 @@ mutable struct TrebuchetState{T}
         a = Angles(aq, wq, sq)
         aw = AnglularVelocities(0.0, 0.0, 0.0)
         i = Inertias(wi, ai)
-        new{T}(l, m, a, aw, c, i, Val{:Ground}(), rate, -1, -1, Solution(), 0)
+        new(l, m, a, aw, c, i, Val{:Ground}(), rate, -1, -1, Solution(), 0)
     end
 end

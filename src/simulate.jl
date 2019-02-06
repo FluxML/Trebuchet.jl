@@ -14,11 +14,11 @@ end
 
 simulate_(t::TrebuchetState, time) = simulate_(t, time, t.stage)
 
-function simulate_(t::TrebuchetState{T}, time, ::Val{:Ground}) where {T}
+function simulate_(t::TrebuchetState, time, ::Val{:Ground})
     a = t.a
     aw = t.aw
-    u0 = T[a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
-    ti = T.((time, time + 1.0))
+    u0 = oftype.(t.m.w, [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw])
+    ti = oftype.(t.m.w, (time, time + 1.0))
     prob = ODEProblem(stage1!, u0, ti, t)
 
     string_tension = (u, time, it, θ) -> begin
@@ -43,36 +43,35 @@ function simulate_(t::TrebuchetState{T}, time, ::Val{:Ground}) where {T}
         (u, time, it) -> t.Tn < zero(typeof(t.Tn)), # loose string case
         (i) -> terminate!(i)
     )
-
-    solve(prob, Tsit5(), saveat=expand(ti[1], 1/(t.rate),ti[2]), callback=CallbackSet(ccb, dcb))
+    solve(prob, Euler(), dt = 1/t.rate, callback=CallbackSet(ccb, dcb))
 end
 
-function simulate_(t::TrebuchetState{T}, time, ::Val{:Hang}) where {T}
+function simulate_(t::TrebuchetState, time, ::Val{:Hang})
     a, aw = t.a, t.aw
     r = t.c.r
-    u0 = T[a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw]
-    ti = T.((time, time + 1.0))
+    u0 = oftype.(t.m.w, [a.aq, a.wq, a.sq, aw.aw, aw.ww, aw.sw])
+    ti = oftype.(t.m.w, (time, time + 1.0))
     prob = ODEProblem(stage2!, u0, ti, t)
 
     cb = ContinuousCallback(
         (u, time, it) -> sin(projectile_angle(t, u) - r),
         (i) -> terminate!(i))
 
-    solve(prob, Tsit5(), callback=cb, saveat=expand(ti[1], 1/(t.rate), ti[2]))
+    solve(prob, Euler(), dt = 1/t.rate, callback=cb)
 end
 
 
-function simulate_(t::TrebuchetState{T}, time, ::Val{:Released}) where {T}
+function simulate_(t::TrebuchetState, time, ::Val{:Released})
     a = t.l.a
-    u0 = T[t.p.x, t.p.y, t.v.x, t.v.y]
-    ti = T.((time, 5.0 + time))
+    u0 = oftype.(t.m.w, [t.p.x, t.p.y, t.v.x, t.v.y])
+    ti = oftype.(t.m.w, (time, 5.0 + time))
     prob = ODEProblem(stage3!, u0, ti, t)
 
     cb = ContinuousCallback(
         (u, time, it) -> u[2] + a,
         (it) -> terminate!(it))
 
-    solve(prob, Tsit5(), saveat=expand(ti[1], 1/(t.rate),ti[2]), callback=cb)
+    solve(prob, Euler(), dt = 1/t.rate, callback=cb)
 end
 
 function stage1!(du, u, p::TrebuchetState, t)

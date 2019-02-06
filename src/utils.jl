@@ -19,13 +19,13 @@ Lengths(::Val{:ft}, args...) = Lengths(ft2m.(args)...)
 Masses(::Val{:lb}, args...) = Masses(lb2kg.(args)...)
 Solution() = Solution([], [], [], [], [], [], [], -1, -1)
 
-function TrebuchetState(;wind_speed::T=1.0, release_angle::T=deg2rad(45), weight::T=98.09) where {T<:Real}
-    release_angle = asin(sin(release_angle))::T
-    l = Lengths(Val{:ft}(), T.((5.0, 6.792, 1.75, 2.0, 6.833, 2.727, 0.1245))...)
-    m = Masses(Val{:lb}(), T.((weight, 0.328, 10.65))...)
-    c = Constants(T.((wind_speed, 1.0, 1.0, 9.80665, release_angle))...)
-    t = TrebuchetState(l, m, c, T(60.0))
-    t.i = Inertias(lb2kg(T(1.0)) |> ft2m |> ft2m , t.i.ia)
+function TrebuchetState(;wind_speed=1.0, release_angle=deg2rad(45), weight=98.09)
+    release_angle = asin(sin(release_angle))
+    l = Lengths(Val{:ft}(), 5.0, 6.792, 1.75, 2.0, 6.833, 2.727, 0.1245)
+    m = Masses(Val{:lb}(), promote(weight, 0.328, 10.65)...)
+    c = Constants(promote(wind_speed, 1.0, 1.0, 9.80665, release_angle)...)
+    t = TrebuchetState(l, m, c, 60.0)
+    t.i = Inertias(promote(lb2kg(1.0) |> ft2m |> ft2m , t.i.ia)...)
     return t
 end
 
@@ -74,16 +74,3 @@ projectile_angle(t::TrebuchetState, u::Array) =
 
 endTime(t::TrebuchetState) = t.sol.Time[end]
 endDist(t::TrebuchetState) = t.sol.Projectile[end][1]
-
-function expand(init::T, diff::T, end_ele::T) where {T}
-    l = floor(Int, (end_ele - init + diff)/diff)
-    arr = zeros(T, l)
-    ele = init
-    index = 1
-    while index <= l
-        arr[index] = ele
-        ele += diff
-        index += 1
-    end
-    return arr
-end
