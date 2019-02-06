@@ -10,7 +10,7 @@ function transition(t::TrebuchetState, s::Array, ::Val{:Ground})
         Tn = t.Tn
         θ = s[1] + s[3] - π
         v = mg - Tn*cos(θ)
-        if approx_less(v, zero(v), 1e-4)
+        if approx_less(v, zero(v), 1e-1)
             t.stage = Val{:Hang}()
         end
     else
