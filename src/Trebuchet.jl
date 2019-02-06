@@ -1,7 +1,7 @@
 module Trebuchet
 
 using WebIO, JSExpr
-using DifferentialEquations
+using OrdinaryDiffEq
 
 export TrebuchetState, simulate, visualise, run
 
