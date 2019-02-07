@@ -37,7 +37,10 @@ function simulate_(t::TrebuchetState, time, ::Val{:Ground})
             t.Tn = Tn
             mg - Tn*cos(θ)
         end,
-        (i) -> terminate!(i))
+        (i) -> begin
+            t.lifted = true
+            terminate!(i)
+        end)
 
     dcb = DiscreteCallback(
         (u, time, it) -> t.Tn < zero(typeof(t.Tn)), # loose string case

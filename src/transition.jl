@@ -6,11 +6,7 @@ function transition(t::TrebuchetState, s::Array, ::Val{:Ground})
     t.aw = AnglularVelocities(s[4:6]...)
     t.a = Angles(s[1:3]...)
     if t.Tn >= zero(typeof(t.Tn))
-        mg = t.m.p * t.c.Grav
-        Tn = t.Tn
-        θ = s[1] + s[3] - π
-        v = mg - Tn*cos(θ)
-        if approx_less(v, zero(v), 1e-1)
+        if t.lifted
             t.stage = Val{:Hang}()
         end
     else
