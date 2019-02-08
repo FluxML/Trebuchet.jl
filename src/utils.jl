@@ -3,7 +3,7 @@ using DiffEqBase: AbstractODESolution
 function shoot((ws, angle, w))
   t = TrebuchetState(;wind_speed=ws, release_angle=angle, weight=w)
   if w <= 0
-      @info "negative weight"
+      @warn "negative weight"
       return (t, sling_end(t).x)
   end
   simulate(t)

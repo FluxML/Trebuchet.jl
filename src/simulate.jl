@@ -14,6 +14,11 @@ end
 
 simulate_(t::TrebuchetState, time) = simulate_(t, time, t.stage)
 
+function terminate(it, tr)
+    tr.terminated = tr.stage
+    terminate!(it)
+end
+
 function simulate_(t::TrebuchetState, time, ::Val{:Ground})
     a = t.a
     aw = t.aw
@@ -37,15 +42,12 @@ function simulate_(t::TrebuchetState, time, ::Val{:Ground})
             t.Tn = Tn
             mg - Tn*cos(θ)
         end,
-        (i) -> begin
-            t.lifted = true
-            terminate!(i)
-        end)
+        (it) -> terminate(it, t))
 
     dcb = DiscreteCallback(
         (u, time, it) -> t.Tn < zero(typeof(t.Tn)), # loose string case
-        (i) -> terminate!(i)
-    )
+        (i) -> terminate!(i))
+
     solve(prob, Euler(), dt = 1/t.rate, callback=CallbackSet(ccb, dcb))
 end
 
@@ -58,7 +60,7 @@ function simulate_(t::TrebuchetState, time, ::Val{:Hang})
 
     cb = ContinuousCallback(
         (u, time, it) -> sin(projectile_angle(t, u) - r),
-        (i) -> terminate!(i))
+        (it) -> terminate(it, t))
 
     solve(prob, Euler(), dt = 1/t.rate, callback=cb)
 end
@@ -72,7 +74,7 @@ function simulate_(t::TrebuchetState, time, ::Val{:Released})
 
     cb = ContinuousCallback(
         (u, time, it) -> u[2] + a,
-        (it) -> terminate!(it))
+        (it) -> terminate(it, t))
 
     solve(prob, Euler(), dt = 1/t.rate, callback=cb)
 end

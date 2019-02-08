@@ -69,7 +69,7 @@ mutable struct TrebuchetState
     v # projectile speed [stage 3]
     sol::Solution
     Tn # tension on string
-    lifted
+    terminated
     function TrebuchetState(l::Lengths, m::Masses, c::Constants, rate)
         θ = asin(l.a/l.b)
         sq = π - θ
