@@ -8,19 +8,31 @@ function setVal(ele, val){
 }
 
 
-function display(ctx, max, sol, {a}, scale){
+function display(ctx, max, sol, {a}, scale, target){
 	var p = (e, color="#000") => new Point(e[0]*scale, -e[1]*scale, color)
 	// console.log(max);
-	var maxWidth = sol.Projectile[max[0]];
-	var toText = (e) => round2(e) + "m";
-	var wm = new Measure(p([0, -a - 2]), p([maxWidth[0], -a - 2]), p([0, -1]), p([0, 1]), toText(maxWidth[0]), color="#efd248");
-	var maxHeight = sol.Projectile[max[1]];
-	var hm = new Measure(p([maxHeight[0], -a]), p(maxHeight), p([-1, 0]), p([1, 0]), toText(maxHeight[1]), color="#efd248");
-	wm.draw(ctx);
-	hm.draw(ctx);
+	// var maxWidth = sol.Projectile[max[0]];
+	// var toText = (e) => round2(e) + "m";
+	// var wm = new Measure(p([0, -a - 2]), p([maxWidth[0], -a - 2]), p([0, -1]), p([0, 1]), toText(maxWidth[0]), color="#efd248");
+	// var maxHeight = sol.Projectile[max[1]];
+	// var hm = new Measure(p([maxHeight[0], -a]), p(maxHeight), p([-1, 0]), p([1, 0]), toText(maxHeight[1]), color="#efd248");
+	// wm.draw(ctx);
+	// hm.draw(ctx);
+
+	if(target){
+		var y = -(a);
+		var T = p([target, y])
+		var endx = sol.Projectile.slice(-1)[0][0];
+		var X = p([endx, y])
+		var dist = Math.abs(endx - target);
+		if(dist >= 3){
+			var sm = new SmallMeasure(T, X, round2(dist)+"m", scale);
+			sm.draw(ctx)
+		}
+	}
 }
 
-function plot(ctx, sol, i, {a}, scale){
+function plot(ctx, sol, i, {a}, scale, target){
 	var p = (e, color="#000") => new Point(e[0]*scale, -e[1]*scale, color)
 
 	function trail(ctx, sol, i){
@@ -49,7 +61,17 @@ function plot(ctx, sol, i, {a}, scale){
 	var PCircle = new Circle(P, scale/5);
 	var UCircle = new Circle(U, scale/3);
 
-	[aLine, bcLine, aRect, bcRect, dLine, eLine, PCircle, UCircle].forEach(e => e.draw(ctx));
+	var drawable = [
+		aLine, bcLine, aRect,
+		bcRect, dLine, eLine,
+		PCircle, UCircle];
+	if(target){
+		var T = p([target, -a]);
+		var TMark = new Target(T, scale);
+		drawable.push(TMark)
+	}
+
+	drawable.forEach(e => e.draw(ctx));
 
 	setVal($$("#time"), round2(sol.Time[i]) + "s");
 	setVal($$("#distance"), round2(sol.Projectile[i][0]) + "m");
@@ -58,7 +80,7 @@ function plot(ctx, sol, i, {a}, scale){
 }
 
 
-function Animation(parent_name, ele_name, lengths, sol, bb){
+function Animation(parent_name, ele_name, lengths, sol, bb, target){
 	this.ele_name = ele_name;
 	this.selector = "div[data-webio-scope-id=" + parent_name + "] #" + ele_name
 	this.canvas = document.querySelector(this.selector);
@@ -76,6 +98,7 @@ function Animation(parent_name, ele_name, lengths, sol, bb){
 	this.max_i = [0, 0];
 	this.time = 10;
 	this.end = sol.WeightCG.length;
+	this.target = target;
 
 	this.resize = function(){
 		var {ele_name, bb, scale, pad, reserved, canvas} = this;
@@ -124,17 +147,22 @@ function Animation(parent_name, ele_name, lengths, sol, bb){
 		this.running = true;
 		this.resize();
 		this.index = 0;
+		// this.index = this.end;
 		this.draw();
 	}
 
 	this.draw = function(){
-		var {canvas, ctx, max_i, sol, lengths, time, origin, scale} = this;
+		var {canvas, ctx, max_i, sol, lengths, time, origin, scale, target} = this;
 		// console.log(scale)
 		var i = this.index;
 		var len = this.end;
 		if(i == len){
-			origin.translate(ctx, () => plot(ctx, sol, i-1, lengths, scale));
-			origin.translate(ctx, ()=>display(ctx, max_i, sol, lengths, scale));
+			origin.translate(ctx, () => {
+				display(ctx, max_i, sol, lengths, scale, target);
+				plot(ctx, sol, i-1, lengths, scale, target);
+
+			});
+
 			this.running = false;
 			return
 		}
@@ -146,7 +174,7 @@ function Animation(parent_name, ele_name, lengths, sol, bb){
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 		comp(i, 0);
 		comp(i, 1);
-		origin.translate(ctx, () => plot(ctx, sol, i, lengths, scale));
+		origin.translate(ctx, () => plot(ctx, sol, i, lengths, scale, target));
 		this.index += 1
 		setTimeout(this.draw.bind(this), time);
 	}
@@ -154,8 +182,8 @@ function Animation(parent_name, ele_name, lengths, sol, bb){
 
 }
 
-function animate(parent_name, ele_name, lengths, sol, bb){
-	var a = new Animation(parent_name, ele_name, lengths, sol, bb);
+function animate(parent_name, ele_name, lengths, sol, bb, target){
+	var a = new Animation(parent_name, ele_name, lengths, sol, bb, target);
 	window.onresize = () => {
 		a.resize();
 		if(!a.running){

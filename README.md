@@ -15,10 +15,11 @@ using Trebuchet
 t = TrebuchetState()
 simulate(t)
 
+target = 100 # or nothing
+s = visualise(t, target)
+
 if @isdefined(Blink)
-  body!(Blink.Window(), visualise(t))
-else
-  visualise(t)
+  body!(Blink.Window(), s)
 end
 
 # to find the gradient w.r.t (wind_speed, release_angle, weight)

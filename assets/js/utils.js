@@ -6,7 +6,7 @@ var rad = (e) => e/c;
 
 (function(obj){
 
-	Object.assign(obj, {Point, Line, Rect, Circle, Measure});
+	Object.assign(obj, {Point, Line, Rect, Circle, Measure, Target, SmallMeasure});
 
 	function Point(x, y, color="#000"){
 		this.x = x;
@@ -45,9 +45,12 @@ var rad = (e) => e/c;
 		this.color = color;
 	}
 
-	Line.prototype.draw = function(ctx){
+	Line.prototype.draw = function(ctx, dashed=false){
 		ctx.strokeStyle = this.color;
 		ctx.beginPath();
+		if(dashed){
+			ctx.setLineDash([2, 1]);
+		}
 		ctx.moveTo(this.a.x, this.a.y);
 		ctx.lineTo(this.b.x, this.b.y);
 		ctx.stroke();
@@ -95,11 +98,35 @@ var rad = (e) => e/c;
 		this.color = color;
 	}
 
-	Circle.prototype.draw = function(ctx){
+	Circle.prototype.draw = function(ctx, fill=true){
 		ctx.beginPath();
-		ctx.fillStyle = this.color;
 		ctx.arc(this.center.x, this.center.y, this.radius, 0, 2*Math.PI);
-		ctx.fill();
+		if(fill){
+			ctx.fillStyle = this.color;
+			ctx.fill();
+		}else{
+			ctx.strokeStyle = this.color;
+			// ctx.strokeWidth =
+			ctx.stroke();
+		}
+	}
+
+	function Target(point, radius, color="#f00"){
+		this.point = point;
+		this.radius = radius;
+		this.color = color;
+	}
+
+	Target.prototype.draw = function(ctx){
+		var {point, radius, color} = this;
+		var a = new Circle(point, 0.25*radius, color);
+		var b = new Circle(point, 0.5*radius, color);
+		var c = new Circle(point, radius, color);
+
+		a.draw(ctx)
+		b.draw(ctx, false);
+		c.draw(ctx, false);
+
 	}
 
 	function Measure(a, b, p, q, val, color="#000", textColor="#000"){
@@ -132,6 +159,29 @@ var rad = (e) => e/c;
 		var padding = 10;
 		ctx.clearRect(tx - padding, ty - h - padding, w + 2*padding, h + 2*padding);
 		ctx.fillText(this.val, tx, ty);
+	}
 
+	function SmallMeasure(a, b, dist, scale, color="#f00", textColor="#222"){
+		this.a = a;
+		this.b = b;
+		this.dist = dist;
+		this.color = color;
+		this.scale = scale;
+		this.textColor = textColor;
+	}
+	SmallMeasure.prototype.draw = function(ctx){
+		var {a, b, dist, color, scale} = this;
+		{
+			var line = new Line(a, b, color);
+			var ca = new Circle(a, scale/5, color);
+			var cb = new Circle(b, scale/5, color);
+			line.draw(ctx, true);
+			([ca, cb]).forEach(w => w.draw(ctx));
+		}
+
+		var c = new Point((a.x + b.x)/2, (a.y + b.y)/2);
+		ctx.fillStyle = this.textColor;
+		ctx.textAlign = "center";
+		ctx.fillText(dist, c.x, c.y- 0.3*scale);
 	}
 })(window);
