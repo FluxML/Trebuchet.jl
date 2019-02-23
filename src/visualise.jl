@@ -30,7 +30,7 @@ function visualise(t, target=nothing)
    onimport(sc,  @js function ()
       createCanvas($(id), "main");
       createOutputBar($(id), "output", $(fields));
-      animate($(id), "main", $(t.l), $(t.sol), $(bb), $(target))
+      animate($(id), "main", $(t.l), $(t.sol), $(bb), $(target), $(ws))
    end)
 
 

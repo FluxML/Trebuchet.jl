@@ -79,6 +79,15 @@ function plot(ctx, sol, i, {a}, scale, target){
 	trail(ctx, sol, i)
 }
 
+function wind_speed(p, ws){
+	var parent = document.querySelector("div[data-webio-scope-id=" + p + "]");
+	var child = document.createElement("div");
+	parent.appendChild(child);
+	child.className="wind_speed";
+	child.setAttribute("dir", ws >= 0 ?"right" : "left");
+	child.innerHTML = "<div></div><span>" + ws + "m/s</span>"
+
+}
 
 function Animation(parent_name, ele_name, lengths, sol, bb, target){
 	this.ele_name = ele_name;
@@ -152,17 +161,17 @@ function Animation(parent_name, ele_name, lengths, sol, bb, target){
 	}
 
 	this.draw = function(){
-		var {canvas, ctx, max_i, sol, lengths, time, origin, scale, target} = this;
+		var {canvas, ctx, max_i, sol, lengths, time, origin, scale, target, ws} = this;
 		// console.log(scale)
 		var i = this.index;
 		var len = this.end;
 		if(i == len){
+
 			origin.translate(ctx, () => {
 				display(ctx, max_i, sol, lengths, scale, target);
 				plot(ctx, sol, i-1, lengths, scale, target);
 
 			});
-
 			this.running = false;
 			return
 		}
@@ -182,7 +191,8 @@ function Animation(parent_name, ele_name, lengths, sol, bb, target){
 
 }
 
-function animate(parent_name, ele_name, lengths, sol, bb, target){
+function animate(parent_name, ele_name, lengths, sol, bb, target, ws){
+	wind_speed(parent_name, ws);
 	var a = new Animation(parent_name, ele_name, lengths, sol, bb, target);
 	window.onresize = () => {
 		a.resize();
