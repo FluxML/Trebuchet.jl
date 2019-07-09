@@ -80,7 +80,7 @@ function plot(ctx, sol, i, {a}, scale, target){
 }
 
 function wind_speed(p, ws){
-	var parent = document.querySelector("div[data-webio-scope-id=" + p + "]");
+	var parent = document.querySelector("div[data-webio-scope-id=\"" + p + "\"]");
 	var child = document.createElement("div");
 	parent.appendChild(child);
 	child.className="wind_speed";
@@ -91,7 +91,7 @@ function wind_speed(p, ws){
 
 function Animation(parent_name, ele_name, lengths, sol, bb, target){
 	this.ele_name = ele_name;
-	this.selector = "div[data-webio-scope-id=" + parent_name + "] #" + ele_name
+	this.selector = "div[data-webio-scope-id=\"" + parent_name + "\"] #" + ele_name
 	this.canvas = document.querySelector(this.selector);
 
 	this.ctx = this.canvas.getContext("2d");
@@ -206,7 +206,7 @@ function animate(parent_name, ele_name, lengths, sol, bb, target, ws){
 function _createCanvas(parent_name, ele_name){
 	var ele = document.createElement("canvas")
 	ele.setAttribute("id", ele_name);
-	$$("div[data-webio-scope-id=" + parent_name + "]").appendChild(ele);
+	$$("div[data-webio-scope-id=\"" + parent_name + "\"]").appendChild(ele);
 }
 
 var format = (name) =>
@@ -221,12 +221,12 @@ function _createOutputBar(parent_name, ele_name, fields){
 	var ele = document.createElement("div")
 	ele.setAttribute("id", ele_name);
 	ele.innerHTML = Object.keys(fields).map(e=>field(e, fields[e])).join("")
-	$$("div[data-webio-scope-id=" + parent_name + "]").appendChild(ele);
+	$$("div[data-webio-scope-id=\"" + parent_name + "\"]").appendChild(ele);
 }
 
 var maybe = (create, old) =>
 	(function(p, ele){
-		$$("div[data-webio-scope-id=" + p +"] #" + ele) ? old(...arguments) : create(...arguments)
+		$$("div[data-webio-scope-id=\"" + p +"\"] #" + ele) ? old(...arguments) : create(...arguments)
 	})
 
 var createCanvas = maybe(_createCanvas, (p, e, w) => $$("#" + e).width = w)
