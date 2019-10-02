@@ -1,10 +1,10 @@
 # Trebuchet.jl
 
-Simulate and visualise a Trebuchet
+Simulate and visualise a Trebuchet.
 
 ## Add package
 ```julia
-] add https://github.com/Roboneet/Trebuchet.jl
+] add https://github.com/FluxML/Trebuchet.jl
 ```
 
 ## Run example
@@ -22,9 +22,10 @@ if @isdefined(Blink)
   body!(Blink.Window(), s)
 end
 
-# to find the gradient w.r.t (wind_speed, release_angle, weight)
-Trebuchet.grad([10.0, 1.0, 1.0])
-
 ```
 
-Credits: http://www.virtualtrebuchet.com/#documentation_EquationsOfMotion
+## Note:
+The code corresponding to [this](https://fluxml.ai/2019/03/05/dp-vs-rl.html) blog post can be found [here](https://github.com/FluxML/model-zoo/blob/10bd26ca21079b1c6ee246dd1938beab55178949/games/differentiable-programming/trebuchet/DiffRL.jl)
+
+## References
+http://www.virtualtrebuchet.com/#documentation_EquationsOfMotion
