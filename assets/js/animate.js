@@ -80,19 +80,17 @@ function plot(ctx, sol, i, {a}, scale, target){
 }
 
 function wind_speed(p, ws){
-	var parent = document.querySelector("div[data-webio-scope-id=\"" + p + "\"]");
 	var child = document.createElement("div");
-	parent.appendChild(child);
+	p.appendChild(child);
 	child.className="wind_speed";
 	child.setAttribute("dir", ws >= 0 ?"right" : "left");
 	child.innerHTML = "<div></div><span>" + ws + "m/s</span>"
 
 }
 
-function Animation(parent_name, ele_name, lengths, sol, bb, target){
+function Animation(parent, ele_name, lengths, sol, bb, target){
 	this.ele_name = ele_name;
-	this.selector = "div[data-webio-scope-id=\"" + parent_name + "\"] #" + ele_name
-	this.canvas = document.querySelector(this.selector);
+	this.canvas = parent.querySelector("#" + ele_name);
 
 	this.ctx = this.canvas.getContext("2d");
 	this.lengths = lengths;
@@ -128,7 +126,7 @@ function Animation(parent_name, ele_name, lengths, sol, bb, target){
 
 		var maxWidth, maxHeight;
 		var is_iJulia = false;
-		if($$(".notebook_app")){
+		if($$(".notebook_app") || $$(".jp-Notebook")){
 			is_iJulia = true;
 			// inside IJulia
 			console.log("IJulia detected")
@@ -191,9 +189,9 @@ function Animation(parent_name, ele_name, lengths, sol, bb, target){
 
 }
 
-function animate(parent_name, ele_name, lengths, sol, bb, target, ws){
-	wind_speed(parent_name, ws);
-	var a = new Animation(parent_name, ele_name, lengths, sol, bb, target);
+function animate(parent, ele_name, lengths, sol, bb, target, ws){
+	wind_speed(parent, ws);
+	var a = new Animation(parent, ele_name, lengths, sol, bb, target);
 	window.onresize = () => {
 		a.resize();
 		if(!a.running){
@@ -203,10 +201,10 @@ function animate(parent_name, ele_name, lengths, sol, bb, target, ws){
 	a.run();
 }
 
-function _createCanvas(parent_name, ele_name){
+function _createCanvas(parent, ele_name){
 	var ele = document.createElement("canvas")
 	ele.setAttribute("id", ele_name);
-	$$("div[data-webio-scope-id=\"" + parent_name + "\"]").appendChild(ele);
+	parent.appendChild(ele);
 }
 
 var format = (name) =>
@@ -217,11 +215,11 @@ var field = (name, val) => '<div class="field">\
 	<div id="' + name + '">' + round2(val[0]) + val[1] + '</div>\
 </div>'
 
-function _createOutputBar(parent_name, ele_name, fields){
+function _createOutputBar(parent, ele_name, fields){
 	var ele = document.createElement("div")
 	ele.setAttribute("id", ele_name);
 	ele.innerHTML = Object.keys(fields).map(e=>field(e, fields[e])).join("")
-	$$("div[data-webio-scope-id=\"" + parent_name + "\"]").appendChild(ele);
+	parent.appendChild(ele);
 }
 
 var maybe = (create, old) =>

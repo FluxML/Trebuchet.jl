@@ -26,15 +26,13 @@ function visualise(t, target=nothing)
       fields["target"] = [target, "m"]
    end
 
-   id = sc.id
    onimport(sc,  @js function ()
-      createCanvas($(id), "main");
-      createOutputBar($(id), "output", $(fields));
-      animate($(id), "main", $(t.l), $(t.sol), $(bb), $(target), $(ws))
+      createCanvas(this.dom, "main");
+      createOutputBar(this.dom, "output", $(fields));
+      animate(this.dom, "main", $(t.l), $(t.sol), $(bb), $(target), $(ws))
    end)
 
-
-   sc(dom"div#_container_"())
+   sc
 end
 
 function boundingbox(t, target)
