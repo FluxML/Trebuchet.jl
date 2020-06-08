@@ -94,7 +94,7 @@ var rad = (e) => e/c;
 
 	function Circle(center, radius, color="#000"){
 		this.center = center;
-		this.radius = radius;
+		this.radius = Math.max(radius, 0);
 		this.color = color;
 	}
 

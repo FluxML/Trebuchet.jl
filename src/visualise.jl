@@ -18,7 +18,7 @@ function visualise(t, target=nothing)
    fields = Dict(
       "distance"=>[0.0, "m"],
       "height"=>[0.0, "m"],
-      "time"=>[0.0, "m"],
+      "time"=>[0.0, "s"],
       "release_angle"=>[rad2deg(r), "deg"],
       "wind_speed"=>[ws, "m/s"],
    )
@@ -26,10 +26,8 @@ function visualise(t, target=nothing)
       fields["target"] = [target, "m"]
    end
 
-   onimport(sc,  @js function ()
-      createCanvas(this.dom, "main");
-      createOutputBar(this.dom, "output", $(fields));
-      animate(this.dom, "main", $(t.l), $(t.sol), $(bb), $(target), $(ws))
+   onimport(sc,  @js function (utils, animate)
+	 animate(this.dom, $(fields), $(t.l), $(t.sol), $(bb), $(target), $(ws));
    end)
 
    sc
