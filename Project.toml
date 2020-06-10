@@ -1,6 +1,6 @@
 name = "Trebuchet"
 uuid = "98b73d46-197d-11e9-11eb-69a6ff759d3a"
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
