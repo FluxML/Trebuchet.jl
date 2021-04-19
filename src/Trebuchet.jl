@@ -3,7 +3,7 @@ module Trebuchet
 using WebIO, JSExpr
 using OrdinaryDiffEq
 
-export TrebuchetState, simulate, visualise, run
+export TrebuchetState, simulate, visualise, run, shoot
 
 include("defs.jl")
 include("utils.jl")

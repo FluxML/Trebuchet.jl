@@ -1,5 +1,14 @@
 using DiffEqBase: AbstractODESolution
 
+"""
+    shoot(ws, angle, w)
+    shoot((ws, angle, w))
+
+Shoots a Trebuchet with weight `w`.
+Releases the weight at the release angle `angle`.
+The current wind speed is `ws`.
+Returns `(t, dist)`, with travel time `t` and travelled distance `dist`.
+"""
 function shoot((ws, angle, w))
   t = TrebuchetState(;wind_speed=ws, release_angle=angle, weight=w)
   if w <= 0
