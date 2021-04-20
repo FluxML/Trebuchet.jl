@@ -4,10 +4,10 @@ using DiffEqBase: AbstractODESolution
     shoot(ws, angle, w)
     shoot((ws, angle, w))
 
-Shoots a Trebuchet with weight `w`.
+Shoots a Trebuchet with weight `w` in kg.
 Releases the weight at the release angle `angle` in radians.
-The current wind speed is `ws`.
-Returns `(t, dist)`, with travel time `t` and travelled distance `dist`.
+The current wind speed is `ws` in m/s.
+Returns `(t, dist)`, with travel time `t` in s and travelled distance `dist` in m.
 """
 function shoot((ws, angle, w))
   t = TrebuchetState(;wind_speed=ws, release_angle=angle, weight=w)
