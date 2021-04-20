@@ -5,7 +5,7 @@ using DiffEqBase: AbstractODESolution
     shoot((ws, angle, w))
 
 Shoots a Trebuchet with weight `w`.
-Releases the weight at the release angle `angle`.
+Releases the weight at the release angle `angle` in radians.
 The current wind speed is `ws`.
 Returns `(t, dist)`, with travel time `t` and travelled distance `dist`.
 """
